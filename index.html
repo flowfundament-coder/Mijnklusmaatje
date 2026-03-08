@@ -3527,20 +3527,7 @@ function renderProjectGroup(card, todayStr, tomorrowStr, mode) {
   if (urgentVandaag) summaryParts.push('⚠ ' + urgentVandaag + ' deadline vandaag');
   else if (urgentMorgen) summaryParts.push('⚠ ' + urgentMorgen + ' deadline morgen');
 
-  // Altijd-zichtbare urgente taken (ingeklapt)
-  const urgenteTaakHTML = !isOpen && urgenteTaken.length > 0 ? urgenteTaken.map(t => {
-    const isDeadlineToday = (t.deadline || '').startsWith(todayStr);
-    const badgeHTML = isDeadlineToday
-      ? '<span class="planning-deadline-badge deadline-today">Vandaag</span>'
-      : '<span class="planning-deadline-badge deadline-tomorrow">Morgen</span>';
-    return `<div class="planning-item planning-item-taak">
-      <button class="checkbox-btn" data-action="toggle-taak-planning" data-project-id="${p.id}" data-id="${t.id}"></button>
-      <div class="planning-item-info">
-        <div class="planning-item-title">${escHtml(t.omschrijving)}</div>
-      </div>
-      ${badgeHTML}
-    </div>`;
-  }).join('') : '';
+  const urgenteTaakHTML = '';
 
   // Volledig uitgeklapt
   const visibleTaken = taken.slice(0, MAX_TAKEN);
@@ -3606,7 +3593,7 @@ function renderProjectGroup(card, todayStr, tomorrowStr, mode) {
         <path d="M9 18l6-6-6-6"/>
       </svg>
     </div>
-    ${!isOpen ? urgenteTaakHTML : (afspraakHTML + taakHTML)}
+    ${isOpen ? (afspraakHTML + taakHTML) : ''}
   </div>`;
 }
 
