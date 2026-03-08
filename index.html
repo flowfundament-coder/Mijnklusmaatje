@@ -987,6 +987,9 @@
     </button>
   </div>
 
+  <!-- Trial/plan banner -->
+  <div id="trial-banner" style="display:none;align-items:center;gap:8px;padding:10px 16px;background:var(--orange-light);border-bottom:1px solid #FED7AA;flex-shrink:0"></div>
+
   <!-- Scrollable dagstart area -->
   <div class="home-scroll-area" id="home-scroll-area">
 
@@ -1287,7 +1290,7 @@
     </div>
 
     <!-- Kaart: Documenten -->
-    <div class="project-card" onclick="showSettingsSub('docs')" style="margin-bottom:24px">
+    <div class="project-card" onclick="showSettingsSub('docs')" style="margin-bottom:12px">
       <div style="display:flex;align-items:center;gap:14px">
         <div style="width:44px;height:44px;background:var(--orange-light);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2">
@@ -1297,6 +1300,22 @@
         <div style="flex:1;min-width:0">
           <div style="font-size:16px;font-weight:700;color:var(--text)">Documenten</div>
           <div id="settings-summary-docs" style="font-size:13px;color:var(--muted);margin-top:2px">Offerte, factuur, voorwaarden</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+    <!-- Kaart: Mijn pakket -->
+    <div class="project-card" onclick="showSettingsSub('pakket')" style="margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:44px;height:44px;background:var(--orange-light);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:16px;font-weight:700;color:var(--text)">Mijn pakket</div>
+          <div id="settings-summary-pakket" style="font-size:13px;color:var(--muted);margin-top:2px">Trial, Standaard of All-in</div>
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
       </div>
@@ -1404,6 +1423,64 @@
           <label class="form-label">Algemene voorwaarden (onderaan PDF)</label>
           <textarea class="form-input" id="s-voorwaarden" rows="3" placeholder="Bijv. betalings- en leveringsvoorwaarden..." style="resize:vertical;min-height:72px"></textarea>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBPAGINA: Mijn pakket -->
+  <div id="settings-sub-pakket" class="settings-sub" style="display:none;overflow-y:auto;flex:1;padding:16px;padding-bottom:48px">
+    <div id="pakket-huidige-plan" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Huidig pakket</div>
+      <div id="pakket-plan-label" style="font-size:22px;font-weight:800;color:var(--orange)">Laden…</div>
+    </div>
+
+    <!-- Pakket: Gratis trial -->
+    <div class="card" style="margin-bottom:12px;border:2px solid var(--border)">
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-size:16px;font-weight:700">Gratis Trial</div>
+          <div style="font-size:16px;font-weight:700;color:var(--muted)">€0</div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ 9 projecten</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Voice AI & typen AI</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Offertes & facturen</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Foto's & leads</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ BTW overzicht</div>
+        <div style="font-size:13px;color:#ccc;margin-bottom:4px">✗ Exports, templates, herinneringen</div>
+        <div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:8px">Geldig voor 5 dagen na registratie</div>
+      </div>
+    </div>
+
+    <!-- Pakket: Standaard -->
+    <div class="card" style="margin-bottom:12px;border:2px solid var(--border)">
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-size:16px;font-weight:700">Standaard</div>
+          <div style="font-size:16px;font-weight:700;color:var(--orange)">€25<span style="font-size:13px;font-weight:500;color:var(--muted)">/mnd</span></div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ 999 projecten</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Typen AI</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Offertes & facturen</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Foto's & leads</div>
+        <div style="font-size:13px;color:#ccc;margin-bottom:4px">✗ Voice AI, BTW overzicht, exports, templates</div>
+        <button class="btn btn-secondary btn-full" style="margin-top:12px" onclick="showToast('Binnenkort beschikbaar — neem contact op via info@mijnklusmaatje.nl')">Upgrade naar Standaard — €25/maand</button>
+      </div>
+    </div>
+
+    <!-- Pakket: All-in -->
+    <div class="card" style="margin-bottom:12px;border:2px solid var(--orange)">
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-size:16px;font-weight:700">All-in ⭐</div>
+          <div style="font-size:16px;font-weight:700;color:var(--orange)">€49<span style="font-size:13px;font-weight:500;color:var(--muted)">/mnd</span></div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Alles van Standaard</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Voice AI (inspreken)</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ BTW overzicht</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Exports (UBL, Moneybird, e-Boekhouden)</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Templates</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Betalingsherinneringen</div>
+        <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="showToast('Binnenkort beschikbaar — neem contact op via info@mijnklusmaatje.nl')">Upgrade naar All-in — €49/maand</button>
       </div>
     </div>
   </div>
@@ -1616,6 +1693,88 @@ async function ensureProfile() {
     const { data } = await sb.from('profiles').select('id').eq('id', currentUser.id).single();
     if (!data) await sb.from('profiles').insert({ id: currentUser.id });
   } catch (err) { logError('ensureProfile', err); }
+  // Initialize trial if settings row has no trial_start
+  try {
+    const { data: sRow } = await sb.from('settings').select('trial_start, plan').eq('user_id', currentUser.id).single();
+    if (sRow && !sRow.trial_start) {
+      await sb.from('settings').update({ trial_start: new Date().toISOString(), plan: 'trial' }).eq('user_id', currentUser.id);
+      if (_settingsCache) { _settingsCache.plan = 'trial'; _settingsCache.trialStart = new Date().toISOString(); }
+    } else if (!sRow) {
+      // Settings row doesn't exist yet — will be created on first save, trial_start handled then
+    }
+  } catch (err) { logError('ensureProfile:trial', err); }
+}
+
+// ===================================================
+// PLAN & FEATURE GATING
+// ===================================================
+
+function getPlanStatus() {
+  const s = _settingsCache;
+  if (!s) return { plan: 'trial', active: true, dagenOver: 5 };
+  const plan = s.plan || 'trial';
+  if (plan === 'allin') return { plan: 'allin', active: true };
+  if (plan === 'standaard') return { plan: 'standaard', active: true };
+  if (plan === 'trial') {
+    if (!s.trialStart) return { plan: 'trial', active: true, dagenOver: 5 };
+    const start = new Date(s.trialStart);
+    const now = new Date();
+    const diffMs = now - start;
+    const diffDagen = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const dagenOver = Math.max(0, 5 - diffDagen);
+    if (dagenOver > 0) return { plan: 'trial', active: true, dagenOver };
+    return { plan: 'verlopen', active: false };
+  }
+  return { plan: 'verlopen', active: false };
+}
+
+const FEATURE_MATRIX = {
+  max_projecten:     { trial: 9, standaard: 999, allin: 999, verlopen: 9 },
+  voice_ai:          { trial: true, standaard: false, allin: true, verlopen: false },
+  typen_ai:          { trial: true, standaard: true, allin: true, verlopen: false },
+  offertes_facturen: { trial: true, standaard: true, allin: true, verlopen: false },
+  fotos:             { trial: true, standaard: true, allin: true, verlopen: false },
+  leads:             { trial: true, standaard: true, allin: true, verlopen: false },
+  btw_overzicht:     { trial: true, standaard: false, allin: true, verlopen: false },
+  exports:           { trial: false, standaard: false, allin: true, verlopen: false },
+  templates:         { trial: false, standaard: false, allin: true, verlopen: false },
+  herinneringen:     { trial: false, standaard: false, allin: true, verlopen: false },
+};
+
+function checkFeature(feature) {
+  const status = getPlanStatus();
+  const plan = status.active ? status.plan : 'verlopen';
+  const matrix = FEATURE_MATRIX[feature];
+  if (!matrix) return true;
+  return !!matrix[plan];
+}
+
+function showUpgradeModal(vereistPlan = 'allin') {
+  const planNaam = vereistPlan === 'allin' ? 'All-in' : 'Standaard';
+  const featuresStandaard = ['Onbeperkte projecten', 'Offertes & facturen', 'Foto\'s & leads', 'BTW overzicht', 'AI typen'];
+  const featuresAllin = [...featuresStandaard, 'Voice AI (inspreken)', 'Exports (UBL, Moneybird)', 'Templates', 'Betalingsherinneringen'];
+
+  document.getElementById('modal-title').textContent = 'Upgrade naar ' + planNaam;
+  document.getElementById('modal-body').innerHTML = `
+    <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Kies een pakket om KlusMaatje te blijven gebruiken.</p>
+    <div style="border:2px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:16px;font-weight:700">Standaard</span>
+        <span style="font-size:18px;font-weight:800;color:var(--orange)">€25<span style="font-size:13px;font-weight:500;color:var(--muted)">/maand</span></span>
+      </div>
+      ${featuresStandaard.map(f => `<div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ ${f}</div>`).join('')}
+      <button class="btn btn-secondary btn-full" style="margin-top:12px" onclick="showToast('Binnenkort beschikbaar — neem contact op via info@mijnklusmaatje.nl');closeModal()">Standaard — €25/maand</button>
+    </div>
+    <div style="border:2px solid var(--orange);border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:16px;font-weight:700">All-in ⭐</span>
+        <span style="font-size:18px;font-weight:800;color:var(--orange)">€49<span style="font-size:13px;font-weight:500;color:var(--muted)">/maand</span></span>
+      </div>
+      ${featuresAllin.map(f => `<div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ ${f}</div>`).join('')}
+      <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="showToast('Binnenkort beschikbaar — neem contact op via info@mijnklusmaatje.nl');closeModal()">All-in — €49/maand</button>
+    </div>
+    <button class="btn btn-secondary btn-full" onclick="closeModal()">Sluiten</button>`;
+  openModal();
 }
 
 function showAuthScreen() {
@@ -1693,12 +1852,14 @@ function rowToSettings(r) {
     kilometerVergoeding: parseFloat(r.km_vergoeding) || 0.23,
     offerteGeldigheid: parseInt(r.offerte_geldigheid) || 30,
     betalingstermijn: parseInt(r.betalingstermijn) || 14,
-    introTekst: r.intro_tekst || '', voorwaarden: r.voorwaarden || ''
+    introTekst: r.intro_tekst || '', voorwaarden: r.voorwaarden || '',
+    plan: r.plan || 'trial',
+    trialStart: r.trial_start || null
   };
 }
 
 function settingsToRow(s) {
-  return {
+  const row = {
     bedrijfsnaam: s.bedrijfsnaam, adres: s.adres, postcode: s.postcode, plaats: s.plaats,
     kvk_nummer: s.kvkNummer, btw_nummer: s.btwNummer, bankrekening: s.bankrekening,
     email: s.email, telefoon: s.telefoon,
@@ -1707,6 +1868,9 @@ function settingsToRow(s) {
     offerte_geldigheid: s.offerteGeldigheid, betalingstermijn: s.betalingstermijn,
     intro_tekst: s.introTekst, voorwaarden: s.voorwaarden
   };
+  if (s.plan !== undefined) row.plan = s.plan;
+  if (s.trialStart !== undefined) row.trial_start = s.trialStart;
+  return row;
 }
 
 async function loadSettings() {
@@ -1772,6 +1936,13 @@ async function fetchProjectWithData(projectId) {
 }
 
 async function addProject(naam, klant = {}) {
+  const status = getPlanStatus();
+  const maxP = FEATURE_MATRIX.max_projecten[status.active ? status.plan : 'verlopen'] || 9;
+  const projects = _projectsListCache || await loadProjects();
+  if (projects.length >= maxP) {
+    showToast('Je hebt het maximum aantal projecten bereikt. Upgrade naar Standaard voor meer projecten.');
+    return null;
+  }
   const { data, error } = await sb.from('projects').insert({
     user_id: currentUser.id, naam, status: 'actief',
     klant_naam: klant.naam || '', klant_adres: klant.adres || '',
@@ -1897,6 +2068,7 @@ async function loadLeads() {
 }
 
 async function addLead(data) {
+  if (!checkFeature('leads')) { showUpgradeModal('standaard'); return; }
   const { data: row, error } = await sb.from('leads').insert({
     user_id: currentUser.id, naam: data.naam || '',
     telefoon: data.telefoon || '', email: data.email || '',
@@ -2632,6 +2804,7 @@ async function openLeadDetail(leadId) {
 }
 
 function openNewLeadModal() {
+  if (!checkFeature('leads')) { showUpgradeModal('standaard'); return; }
   document.getElementById('modal-title').textContent = 'Nieuwe lead';
   document.getElementById('modal-body').innerHTML = `
     <div class="form-group"><label class="form-label">Naam *</label>
@@ -3637,6 +3810,7 @@ function pdfAddPageFooters(doc, footerText) {
 }
 
 async function generateOfferte(force = false) {
+  if (!checkFeature('offertes_facturen')) { showUpgradeModal('standaard'); return; }
   const p = AppState.currentProjectData;
   if (!p) return;
   const settings = await loadSettings();
@@ -3801,6 +3975,7 @@ async function generateOfferte(force = false) {
 }
 
 async function generateFactuur(force = false) {
+  if (!checkFeature('offertes_facturen')) { showUpgradeModal('standaard'); return; }
   const p = AppState.currentProjectData;
   if (!p) return;
   const settings = await loadSettings();
@@ -4028,6 +4203,10 @@ let audioChunks = [];
 let audioStream = null;
 
 async function toggleRecording() {
+  if (!checkFeature('voice_ai')) {
+    showToast('Voice-invoer is beschikbaar in het All-in pakket');
+    return;
+  }
   if (isRecording) {
     stopRecording();
   } else {
@@ -4713,6 +4892,21 @@ async function renderDagstartScherm() {
   const mainEl = document.getElementById('dagstart-main-content');
   if (!mainEl) return;
 
+  // Trial/plan banner
+  const planStatus = getPlanStatus();
+  const bannerEl = document.getElementById('trial-banner');
+  if (bannerEl) {
+    if (planStatus.plan === 'trial' && planStatus.active) {
+      bannerEl.style.display = 'flex';
+      bannerEl.innerHTML = `<span style="font-size:15px;flex-shrink:0">⏳</span><span style="flex:1;color:var(--orange-dark);font-weight:600;font-size:13px">Je trial loopt nog ${planStatus.dagenOver} ${planStatus.dagenOver === 1 ? 'dag' : 'dagen'} — probeer alles gratis uit!</span>`;
+    } else if (!planStatus.active) {
+      bannerEl.style.display = 'flex';
+      bannerEl.innerHTML = `<span style="font-size:15px;flex-shrink:0">⚠️</span><span style="flex:1;color:var(--red);font-weight:600;font-size:13px">Je trial is verlopen. Upgrade om KlusMaatje te blijven gebruiken.</span><button class="btn btn-sm btn-primary" style="flex-shrink:0;margin-left:8px" onclick="showUpgradeModal('standaard')">Bekijk pakketten</button>`;
+    } else {
+      bannerEl.style.display = 'none';
+    }
+  }
+
   let html = '';
 
   // Urgente items sectie
@@ -5086,6 +5280,10 @@ async function submitTimerFullEdit() {
 // ===================================================
 
 async function submitTextInput() {
+  if (!checkFeature('typen_ai')) {
+    showUpgradeModal('standaard');
+    return;
+  }
   const el = document.getElementById('text-input');
   const text = el?.value.trim();
   if (!text) return;
@@ -5186,6 +5384,7 @@ async function renderFotos(p) {
 }
 
 async function handlePhotoInput(event) {
+  if (!checkFeature('fotos')) { showUpgradeModal('standaard'); return; }
   const file = event.target.files[0];
   if (!file) return;
   event.target.value = '';
@@ -5405,6 +5604,7 @@ async function toggleFactuurStatus(projectId, factuurId) {
 }
 
 async function generateHerinnering(projectId, factuurId) {
+  if (!checkFeature('herinneringen')) { showUpgradeModal('allin'); return; }
   if (!AppState.currentProjectData) return;
   const p = AppState.currentProjectData;
   const f = (p.facturen || []).find(f => f.id === factuurId);
@@ -5456,6 +5656,7 @@ async function generateHerinnering(projectId, factuurId) {
 // ===================================================
 
 async function saveAsTemplate(projectId) {
+  if (!checkFeature('templates')) { showUpgradeModal('allin'); return; }
   closeModal();
   const p = AppState.currentProjectData;
   if (!p) return;
@@ -5624,6 +5825,7 @@ function exportDateLabel(van, tot) {
 }
 
 async function exportMoneybird() {
+  if (!checkFeature('exports')) { showUpgradeModal('allin'); return; }
   const { van, tot } = getExportDateRange();
   let invoices;
   try { invoices = await loadAllInvoicesForExport(van, tot); }
@@ -5648,6 +5850,7 @@ async function exportMoneybird() {
 }
 
 async function exportEBoekhouden() {
+  if (!checkFeature('exports')) { showUpgradeModal('allin'); return; }
   const { van, tot } = getExportDateRange();
   let invoices;
   try { invoices = await loadAllInvoicesForExport(van, tot); }
@@ -5782,6 +5985,7 @@ function buildUBLInvoice(inv, settings, btwPct) {
 }
 
 async function exportUBLXML() {
+  if (!checkFeature('exports')) { showUpgradeModal('allin'); return; }
   if (!window.JSZip) { showToast('JSZip niet geladen — herlaad de pagina'); return; }
   const { van, tot } = getExportDateRange();
   let invoices;
@@ -5822,6 +6026,15 @@ function toggleBTWCard(q) {
 async function renderBTWOverzicht() {
   const el = document.getElementById('btw-content');
   if (!el) return;
+  if (!checkFeature('btw_overzicht')) {
+    el.innerHTML = `<div style="padding:24px;text-align:center">
+      <div style="font-size:40px;margin-bottom:12px">📊</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">BTW-overzicht is beschikbaar in All-in</div>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:20px">Bekijk je BTW-aangifte per kwartaal en exporteer facturen.</p>
+      <button class="btn btn-primary" onclick="showUpgradeModal('allin')">Bekijk pakketten</button>
+    </div>`;
+    return;
+  }
   el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--muted)">Laden…</div>';
 
   const settings = await loadSettings();
@@ -6068,14 +6281,37 @@ let _currentSettingsSub = null;
 
 function showSettingsSub(sub) {
   _currentSettingsSub = sub;
-  const titles = { bedrijf: 'Bedrijfsgegevens', tarieven: 'Tarieven', docs: 'Documenten' };
+  const titles = { bedrijf: 'Bedrijfsgegevens', tarieven: 'Tarieven', docs: 'Documenten', pakket: 'Mijn pakket' };
   document.getElementById('settings-overview').style.display = 'none';
   document.getElementById('settings-header-overview').style.display = 'none';
   document.querySelectorAll('.settings-sub').forEach(el => el.style.display = 'none');
   document.getElementById('settings-sub-title').textContent = titles[sub] || sub;
+  // Hide save button for pakket sub (read-only)
+  const saveBtn = document.querySelector('#settings-header-sub .btn-primary');
+  if (saveBtn) saveBtn.style.display = sub === 'pakket' ? 'none' : '';
   document.getElementById('settings-header-sub').style.display = 'flex';
   const subEl = document.getElementById('settings-sub-' + sub);
   if (subEl) { subEl.style.display = 'block'; }
+  if (sub === 'pakket') renderPakketSub();
+}
+
+function renderPakketSub() {
+  const status = getPlanStatus();
+  const labelEl = document.getElementById('pakket-plan-label');
+  if (!labelEl) return;
+  if (status.plan === 'trial' && status.active) {
+    labelEl.textContent = 'Trial — nog ' + status.dagenOver + (status.dagenOver === 1 ? ' dag' : ' dagen');
+  } else if (status.plan === 'standaard') {
+    labelEl.textContent = 'Standaard';
+  } else if (status.plan === 'allin') {
+    labelEl.textContent = 'All-in ⭐';
+  } else {
+    labelEl.textContent = 'Trial verlopen';
+    labelEl.style.color = 'var(--red)';
+  }
+  // Update summary in settings overview
+  const summaryEl = document.getElementById('settings-summary-pakket');
+  if (summaryEl) summaryEl.textContent = labelEl.textContent;
 }
 
 function hideSettingsSub() {
@@ -6117,6 +6353,20 @@ function updateSettingsSummaries() {
     if (s.offerteGeldigheid) parts.push('Offerte ' + s.offerteGeldigheid + ' dgn');
     if (s.betalingstermijn) parts.push('Betaling ' + s.betalingstermijn + ' dgn');
     docsEl.textContent = parts.length ? parts.join(' · ') : 'Offerte, factuur, voorwaarden';
+  }
+
+  const pakketEl = document.getElementById('settings-summary-pakket');
+  if (pakketEl) {
+    const status = getPlanStatus();
+    if (status.plan === 'trial' && status.active) {
+      pakketEl.textContent = 'Trial — nog ' + status.dagenOver + (status.dagenOver === 1 ? ' dag' : ' dagen');
+    } else if (status.plan === 'standaard') {
+      pakketEl.textContent = 'Standaard';
+    } else if (status.plan === 'allin') {
+      pakketEl.textContent = 'All-in';
+    } else {
+      pakketEl.textContent = 'Trial verlopen — upgrade vereist';
+    }
   }
 }
 
