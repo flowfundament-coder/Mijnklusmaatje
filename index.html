@@ -2316,6 +2316,8 @@ async function renderProjectsList() {
     ...projects.filter(p => p.status === 'afgerond')
   ];
 
+  const timerData = getTimerData();
+
   const el = document.getElementById('projects-list');
   if (!sorted.length) {
     el.innerHTML = `<div class="empty-state">
@@ -2326,13 +2328,42 @@ async function renderProjectsList() {
     return;
   }
 
-  el.innerHTML = sorted.map(p => {
+  let timerBarHTML = '';
+  if (timerData) {
+    const ms = Date.now() - timerData.start;
+    const uren = Math.floor(ms / 3600000);
+    const min = Math.floor((ms % 3600000) / 60000);
+    const timerProject = sorted.find(p => p.id === timerData.projectId);
+    const timerNaam = timerProject ? escHtml(timerProject.naam) : 'Onbekend project';
+    timerBarHTML = `<div class="dagstart-active-timer-card" style="margin-bottom:12px">
+      <div class="dagstart-active-timer-info">
+        <div class="dagstart-active-timer-time">⏱ ${uren}u ${min}m</div>
+        <div class="dagstart-active-timer-project">${timerNaam}</div>
+      </div>
+      <button class="btn btn-danger btn-sm" data-action="stop-timer">Stop &amp; registreer</button>
+    </div>`;
+  }
+
+  el.innerHTML = timerBarHTML + sorted.map(p => {
     const badge = { actief: 'badge-actief', offerte: 'badge-offerte', afgerond: 'badge-afgerond' }[p.status] || 'badge-afgerond';
     const label = { actief: 'Actief', offerte: 'Offerte', afgerond: 'Afgerond' }[p.status] || p.status;
     const datum = new Date(p.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+    const timerLooptHier = timerData && timerData.projectId === p.id;
+    const timerLooptElders = timerData && timerData.projectId !== p.id;
+    let timerBtnHTML = '';
+    if (p.status === 'actief') {
+      if (timerLooptHier) {
+        timerBtnHTML = `<button class="dagstart-timer-btn active-timer" data-action="stop-timer" title="Timer stoppen">⏹</button>`;
+      } else if (timerLooptElders) {
+        timerBtnHTML = `<button class="dagstart-timer-btn disabled" title="Stop eerst de andere timer">▶</button>`;
+      } else {
+        timerBtnHTML = `<button class="dagstart-timer-btn" data-action="start-timer" data-id="${p.id}" data-naam="${escHtml(p.naam)}" title="Timer starten">▶</button>`;
+      }
+    }
     return `<div class="project-card" data-action="open-project" data-id="${p.id}">
       <div class="project-card-top">
-        <div class="project-name">${escHtml(p.naam)}</div>
+        <div class="project-name" style="flex:1">${escHtml(p.naam)}</div>
+        ${timerBtnHTML}
         <span class="badge ${badge}">${label}</span>
       </div>
       <div class="project-meta">
@@ -2610,47 +2641,6 @@ async function renderRitten(p) {
       </button>
     </div>`;
   }).join('');
-}
-
-function renderNotities(p) {
-  const el = document.getElementById('notities-list');
-  if (!p.notities.length) { el.innerHTML = renderEmptyState('Nog geen notities.'); return; }
-
-  const gepland = p.notities
-    .filter(n => n.datum)
-    .sort((a, b) => new Date(a.datum) - new Date(b.datum));
-
-  const ongepland = p.notities
-    .filter(n => !n.datum)
-    .sort((a, b) => new Date(b.aangemaakt || 0) - new Date(a.aangemaakt || 0));
-
-  let html = '';
-  if (gepland.length) {
-    html += '<div class="card-header">Gepland</div>';
-    html += gepland.map(n => renderNotitieRow(n, true)).join('');
-  }
-  if (ongepland.length) {
-    html += '<div class="card-header">Notities</div>';
-    html += ongepland.map(n => renderNotitieRow(n, false)).join('');
-  }
-  el.innerHTML = html;
-}
-
-function renderNotitieRow(n, showDate) {
-  const dateStr = showDate && n.datum
-    ? fmtDate(n.datum) + (n.tijd ? ' om ' + n.tijd : '')
-    : fmtDate(n.aangemaakt || n.datum);
-  return `
-    <div class="item-row">
-      ${showDate ? '<span style="font-size:16px;flex-shrink:0">📅</span>' : ''}
-      <div class="item-row-info">
-        <div class="item-row-title">${escHtml(n.tekst)}</div>
-        <div class="item-row-sub">${dateStr}</div>
-      </div>
-      <button class="item-row-action" onclick="deleteItem('notities','${n.id}')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
-    </div>`;
 }
 
 function loadKlantForm(p) {
@@ -4578,9 +4568,9 @@ async function interpretWithClaude(transcript) {
   }
 }
 
-function findProject(idOrNaam) {
+async function findProject(idOrNaam) {
   if (!idOrNaam) return null;
-  const projects = _projectsListCache || [];
+  const projects = _projectsListCache || await loadProjects();
   let p = projects.find(p => p.id === idOrNaam);
   if (p) return p;
   const q = String(idOrNaam).toLowerCase();
@@ -4615,7 +4605,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'voeg_taak_toe': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const itemType = parameters.type === 'notitie' ? 'notitie' : 'taak';
         const row = await addTaakDB(p.id, { omschrijving: parameters.omschrijving || '', deadline: parameters.deadline || null, type: itemType, tijd: parameters.tijd || null });
@@ -4629,7 +4619,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'voeg_materiaal_toe': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const items = parameters?.items || [{ naam: parameters?.naam, hoeveelheid: parameters?.hoeveelheid, eenheid: parameters?.eenheid, prijs: parameters?.prijs }];
         for (const m of items) {
@@ -4645,7 +4635,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'registreer_uren': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const uren = parseFloat(parameters?.uren);
         if (!uren || uren <= 0) { showToast('Ongeldig aantal uren'); return; }
@@ -4659,7 +4649,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'registreer_rit': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const km = parseFloat(parameters?.km);
         if (!km || km <= 0) { showToast('Ongeldig aantal km'); return; }
@@ -4674,7 +4664,7 @@ async function executeAction(actie, parameters) {
 
       case 'voeg_notitie_toe': {
         // Legacy: doorsturen naar taken tabel met type='notitie'
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const tekst = parameters.tekst || parameters.omschrijving || '';
         const row = await addTaakDB(p.id, { omschrijving: tekst, deadline: parameters.datum || null, type: 'notitie', tijd: parameters.tijd || null });
@@ -4688,7 +4678,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'update_klant': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         if (parameters?.veld && parameters?.waarde !== undefined) {
           const colMap = { naam:'klant_naam', adres:'klant_adres', postcode:'klant_postcode', plaats:'klant_plaats', telefoon:'klant_telefoon', email:'klant_email' };
@@ -4707,7 +4697,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'genereer_offerte': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         await showScreen('project-detail', p.id);
         setTimeout(() => generateOfferte(), 500);
@@ -4715,7 +4705,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'genereer_factuur': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         await showScreen('project-detail', p.id);
         setTimeout(() => generateFactuur(), 500);
@@ -4731,7 +4721,7 @@ async function executeAction(actie, parameters) {
 
       case 'toon_uren': {
         if (parameters?.project_id) {
-          const p = findProject(parameters.project_id);
+          const p = await findProject(parameters.project_id);
           if (p) { await showScreen('project-detail', p.id); setTimeout(() => switchTab('uren'), 100); }
         }
         break;
@@ -4786,7 +4776,7 @@ function logError(context, error) {
 }
 
 function escHtml(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 function todayStr() {
@@ -4956,84 +4946,6 @@ async function renderDagstartScherm() {
   mainEl.innerHTML = html;
 }
 
-function renderDagstartProjectCard(p, todayStr, tomorrowStr, timerData) {
-  const timerLooptVoorDit = timerData && timerData.projectId === p.id;
-  const timerLooptAnders = timerData && timerData.projectId !== p.id;
-
-  let timerBtnClass = 'dagstart-timer-btn';
-  let timerBtnAction = `data-action="start-timer" data-id="${p.id}" data-naam="${escHtml(p.naam)}"`;
-  let timerBtnIcon = '▶';
-
-  if (timerLooptVoorDit) {
-    timerBtnClass = 'dagstart-timer-btn active-timer';
-    timerBtnAction = 'data-action="stop-timer"';
-    timerBtnIcon = '⏹';
-  } else if (timerLooptAnders) {
-    timerBtnClass = 'dagstart-timer-btn disabled';
-  }
-
-  // Items verzamelen (max 4)
-  const items = [];
-
-  // Notities met datum vandaag
-  const notitiesVandaag = (p.notities || []).filter(n => n.datum && n.datum.startsWith(todayStr));
-  notitiesVandaag.forEach(n => {
-    if (items.length < 4) {
-      const tijdStr = n.tijd ? `<span style="color:var(--muted);margin-left:4px">${n.tijd}</span>` : '';
-      items.push({ icon: '📅', text: escHtml(n.tekst) + tijdStr, badge: '' });
-    }
-  });
-
-  // Open taken deadline vandaag
-  const takenVandaag = (p.taken || []).filter(t => !t.voltooid && t.type !== 'notitie' && t.deadline && t.deadline.startsWith(todayStr));
-  takenVandaag.forEach(t => {
-    if (items.length < 4) {
-      items.push({ icon: '⬜', text: escHtml(t.omschrijving), badge: '<span class="planning-deadline-badge deadline-today" style="font-size:10px;padding:1px 6px">Vandaag</span>' });
-    }
-  });
-
-  // Open taken deadline morgen
-  const takenMorgen = (p.taken || []).filter(t => !t.voltooid && t.type !== 'notitie' && t.deadline && t.deadline.startsWith(tomorrowStr));
-  takenMorgen.forEach(t => {
-    if (items.length < 4) {
-      items.push({ icon: '⬜', text: escHtml(t.omschrijving), badge: '<span class="planning-deadline-badge deadline-tomorrow" style="font-size:10px;padding:1px 6px">Morgen</span>' });
-    }
-  });
-
-  // Overige open taken
-  const takenGetoond = new Set([...takenVandaag, ...takenMorgen].map(t => t.id));
-  const overigeOpenTaken = (p.taken || []).filter(t => !t.voltooid && t.type !== 'notitie' && !takenGetoond.has(t.id));
-  overigeOpenTaken.forEach(t => {
-    if (items.length < 4) items.push({ icon: '⬜', text: escHtml(t.omschrijving), badge: '' });
-  });
-
-  // Meer-taken telling
-  const totalMogelijk = notitiesVandaag.length + takenVandaag.length + takenMorgen.length + overigeOpenTaken.length;
-  const aantalNietGetoond = Math.max(0, totalMogelijk - items.length);
-
-  let itemsHtml = items.map(i => `
-    <div class="dagstart-project-item">
-      <span class="dagstart-item-icon">${i.icon}</span>
-      <span class="dagstart-item-text">${i.text}</span>
-      ${i.badge}
-    </div>`).join('');
-
-  if (aantalNietGetoond > 0) {
-    itemsHtml += `<div class="dagstart-meer-taken" data-action="show-project-taken" data-id="${p.id}">
-      +${aantalNietGetoond} meer taken →
-    </div>`;
-  }
-
-  return `<div class="dagstart-project-card">
-    <div class="dagstart-project-header">
-      <span style="font-size:15px">🏗</span>
-      <span class="dagstart-project-naam" data-action="open-project" data-id="${p.id}">${escHtml(p.naam)}</span>
-      <button class="${timerBtnClass}" ${timerBtnAction} title="${timerLooptVoorDit ? 'Timer stoppen' : 'Timer starten'}">${timerBtnIcon}</button>
-    </div>
-    ${itemsHtml}
-  </div>`;
-}
-
 // ===================================================
 // SNELLE UREN-TIMER
 // ===================================================
@@ -5047,8 +4959,12 @@ function initTimer() {
   }
 }
 
+function timerKey() {
+  return 'bouwbuddy_timer_' + (currentUser?.id || 'anon');
+}
+
 function getTimerData() {
-  try { return JSON.parse(localStorage.getItem('bouwbuddy_timer') || 'null'); } catch (err) { logError('getTimerData', err); return null; }
+  try { return JSON.parse(localStorage.getItem(timerKey()) || 'null'); } catch (err) { logError('getTimerData', err); return null; }
 }
 
 function renderDagstartTimerCard() {
@@ -5080,11 +4996,6 @@ function renderDagstartTimerCard() {
   </div>`;
 }
 
-// Alias for backward compat (called from old code paths)
-async function renderTimerArea() {
-  renderDagstartTimerCard();
-}
-
 async function startTimer() {
   // Voor AI-spraakcommando's: open modal met projectkeuze
   const projects = (await loadProjects()).filter(p => p.status === 'actief');
@@ -5105,7 +5016,7 @@ async function startTimer() {
 function confirmStartTimer() {
   const projectId = document.getElementById('m-timer-project')?.value || null;
   const omschrijving = document.getElementById('m-timer-omschrijving')?.value.trim() || '';
-  localStorage.setItem('bouwbuddy_timer', JSON.stringify({ start: Date.now(), projectId, omschrijving }));
+  localStorage.setItem(timerKey(), JSON.stringify({ start: Date.now(), projectId, omschrijving }));
   if (!timerInterval) timerInterval = setInterval(renderDagstartTimerCard, 30000);
   closeModal();
   renderDagstartTimerCard();
@@ -5116,7 +5027,7 @@ function startTimerVanProject(projectId, projectNaam) {
   // Directe timer start vanuit dagstart project card (één tik)
   const bestaand = getTimerData();
   if (bestaand) { showToast('Stop eerst de huidige timer'); return; }
-  localStorage.setItem('bouwbuddy_timer', JSON.stringify({ start: Date.now(), projectId, omschrijving: '' }));
+  localStorage.setItem(timerKey(), JSON.stringify({ start: Date.now(), projectId, omschrijving: '' }));
   if (!timerInterval) timerInterval = setInterval(renderDagstartTimerCard, 30000);
   renderDagstartTimerCard();
   // Project cards updaten (▶ → ⏹)
@@ -5134,6 +5045,7 @@ function startTimerVanProject(projectId, projectNaam) {
     });
   }
   showToast('⏱ Timer gestart — ' + escHtml(projectNaam));
+  if (AppState.currentScreen === 'projects') renderProjectsList();
 }
 
 async function stopTimerDirect() {
@@ -5144,7 +5056,7 @@ async function stopTimerDirect() {
   const uren = Math.max(0.25, Math.round(ms / 3600000 / 0.25) * 0.25);
   const projectId = data.projectId;
 
-  localStorage.removeItem('bouwbuddy_timer');
+  localStorage.removeItem(timerKey());
   clearInterval(timerInterval);
   timerInterval = null;
 
@@ -5167,6 +5079,7 @@ async function stopTimerDirect() {
   }
 
   // Dagstart opnieuw renderen om ▶ knop terug te tonen
+  if (AppState.currentScreen === 'projects') await renderProjectsList();
   if (AppState.currentScreen === 'home') await renderDagstartScherm();
 }
 
@@ -5178,10 +5091,10 @@ async function stopTimer() {
   const uren = Math.max(0.25, Math.round(ms / 3600000 / 0.25) * 0.25);
 
   // Wis timer
-  localStorage.removeItem('bouwbuddy_timer');
+  localStorage.removeItem(timerKey());
   clearInterval(timerInterval);
   timerInterval = null;
-  await renderTimerArea();
+  renderDagstartTimerCard();
 
   // Zoek projectnaam
   const projects = _projectsListCache || await loadProjects();
