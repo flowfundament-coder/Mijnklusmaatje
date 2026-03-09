@@ -1065,7 +1065,6 @@
           <input class="form-input" id="auth-password" type="password" placeholder="Wachtwoord" autocomplete="current-password"
             onkeydown="if(event.key==='Enter')handleSignIn()"></div>
         <button class="btn btn-primary btn-full" id="auth-signin-btn" onclick="handleSignIn()">Inloggen</button>
-        <button class="btn btn-secondary btn-full" onclick="handleDemoLogin()" style="margin-top:8px">Demo Inloggen (zonder account)</button>
         <div class="auth-switch">Nog geen account? <button onclick="showAuthTab('register')">Registreren</button></div>
       </div>
       <div id="auth-register-form" style="display:none">
@@ -1088,8 +1087,8 @@
   <div class="header">
     <span class="header-logo">🏗 KlusMaatje</span>
     <div style="flex:1"></div>
-    <button class="btn-icon" onclick="showScreen('settings')" aria-label="Instellingen">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <button class="btn-icon" onclick="showScreen('settings')" aria-label="Instellingen" style="width:32px;height:32px;min-width:32px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
       </svg>
     </button>
@@ -1713,10 +1712,6 @@ window._pendingSharePdf = null;
 window._pendingShareFilename = null;
 let _settingsCache = null;
 let _projectsListCache = null; // for AI findProject
-let _demoMode = false; // true = lokale data, geen Supabase
-let _localProjects = []; // in-memory project store voor demo
-let _localLeads = []; // in-memory leads voor demo
-let _demoDocCounters = { F: 0, O: 0 }; // in-memory document counters voor demo
 let _subscriptionCache = null;
 
 // ===================================================
@@ -1791,10 +1786,6 @@ const EXPIRED_PLAN = {
 // ===================================================
 
 async function loadSubscription() {
-  if (_demoMode) {
-    _subscriptionCache = { plan: 'trial', trialEnd: new Date(Date.now() + 7 * 86400000).toISOString(), active: true, trialDaysLeft: 7 };
-    return _subscriptionCache;
-  }
   try {
     let { data, error } = await sb.from('subscriptions').select('*').eq('user_id', currentUser.id).single();
     if (error || !data) {
@@ -1914,14 +1905,6 @@ function showPricingModal() {
 }
 
 async function selectPlan(plan) {
-  if (_demoMode) {
-    _subscriptionCache = { plan, trialEnd: _subscriptionCache?.trialEnd, trialDaysLeft: _subscriptionCache?.trialDaysLeft || 0, active: true };
-    closeModal();
-    showToast('Betaling wordt binnenkort beschikbaar');
-    if (AppState.currentScreen === 'home') await renderDagstartScherm();
-    updateSubscriptionUI();
-    return;
-  }
   try {
     await sb.from('subscriptions').update({ plan, active: true, updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
     _subscriptionCache.plan = plan;
@@ -1996,26 +1979,6 @@ function updateSubscriptionUI() {
 }
 
 // ===================================================
-// DEMO LOGIN — frontend-only mode
-// ===================================================
-
-function handleDemoLogin() {
-  _demoMode = true;
-  currentUser = { id: 'demo-user', email: 'demo@bouwbuddy.nl' };
-  _settingsCache = getDefaultSettings();
-  _projectsListCache = [];
-  _localProjects = [];
-  _localLeads = [];
-  _subscriptionCache = { plan: 'trial', trialEnd: new Date(Date.now() + 7 * 86400000).toISOString(), active: true, trialDaysLeft: 7 };
-
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('bottom-nav').style.display = 'flex';
-  showScreen('home');
-  updateSubscriptionUI();
-  showToast('Demo-modus actief');
-}
-
-// ===================================================
 // AUTH
 // ===================================================
 
@@ -2061,22 +2024,18 @@ async function handleSignUp() {
 }
 
 async function handleSignOut() {
-  if (!_demoMode) await sb.auth.signOut();
+  await sb.auth.signOut();
   currentUser = null;
   _settingsCache = null;
   _projectsListCache = null;
   _subscriptionCache = null;
   AppState.currentProjectData = null;
   AppState.currentProjectId = null;
-  _demoMode = false;
-  _localProjects = [];
-  _localLeads = [];
   removeExpiredOverlay();
   showAuthScreen();
 }
 
 async function ensureProfile() {
-  if (_demoMode) return;
   try {
     const { data } = await sb.from('profiles').select('id').eq('id', currentUser.id).single();
     if (!data) await sb.from('profiles').insert({ id: currentUser.id });
@@ -2176,7 +2135,6 @@ function settingsToRow(s) {
 
 async function loadSettings() {
   if (_settingsCache) return _settingsCache;
-  if (_demoMode) { _settingsCache = getDefaultSettings(); return _settingsCache; }
   try {
     const { data } = await sb.from('settings').select('*').eq('user_id', currentUser.id).single();
     _settingsCache = data ? rowToSettings(data) : getDefaultSettings();
@@ -2186,7 +2144,6 @@ async function loadSettings() {
 
 async function saveSettings(settings) {
   _settingsCache = settings;
-  if (_demoMode) return;
   await sb.from('settings').upsert({ user_id: currentUser.id, ...settingsToRow(settings) });
 }
 
@@ -2211,10 +2168,6 @@ function rowToProject(row, rel = {}) {
 }
 
 async function loadProjects() {
-  if (_demoMode) {
-    _projectsListCache = _localProjects;
-    return _localProjects;
-  }
   try {
     const { data, error } = await sb.from('projects').select('*, taken(*), notities(*)')
       .eq('user_id', currentUser.id).order('aangemaakt', { ascending: false });
@@ -2229,9 +2182,6 @@ async function loadProjects() {
 
 async function fetchProjectWithData(projectId) {
   console.log('[debug] fetchProjectWithData aangeroepen met projectId:', projectId);
-  if (_demoMode) {
-    return _localProjects.find(p => p.id === projectId) || null;
-  }
   try {
     const { data, error } = await sb.rpc('get_project_with_data', { p_id: projectId });
     console.log('[debug] RPC get_project_with_data resultaat:', { data, error });
@@ -2246,17 +2196,6 @@ async function fetchProjectWithData(projectId) {
 }
 
 async function addProject(naam, klant = {}) {
-  if (_demoMode) {
-    const p = {
-      id: generateUUID(), naam, status: 'actief',
-      aangemaakt: new Date().toISOString(),
-      klant: { naam: klant.naam || '', adres: klant.adres || '', postcode: klant.postcode || '', plaats: klant.plaats || '', telefoon: klant.telefoon || '', email: klant.email || '' },
-      taken: [], materialen: [], uren: [], ritten: [], notities: [], offertes: [], facturen: [], fotos: [], afspraken: []
-    };
-    _localProjects.unshift(p);
-    _projectsListCache = _localProjects;
-    return p;
-  }
   const { data, error } = await sb.from('projects').insert({
     user_id: currentUser.id, naam, status: 'actief',
     klant_naam: klant.naam || '', klant_adres: klant.adres || '',
@@ -2269,11 +2208,6 @@ async function addProject(naam, klant = {}) {
 }
 
 async function deleteProject(projectId) {
-  if (_demoMode) {
-    _localProjects = _localProjects.filter(p => p.id !== projectId);
-    _projectsListCache = _localProjects;
-    return;
-  }
   // Fetch storage paths first (best-effort cleanup, vóór DB-delete)
   const { data: fotos } = await sb.from('fotos').select('storage_path').eq('project_id', projectId);
 
@@ -2295,8 +2229,6 @@ async function deleteProject(projectId) {
 async function addTaakDB(projectId, taak) {
   const type = taak.type || 'taak';
   const meerwerk = taak.meerwerk || false;
-  const newItem = { id: generateUUID(), omschrijving: taak.omschrijving, deadline: taak.deadline || null, voltooid: false, type, tijd: taak.tijd || null, meerwerk, aangemaakt: new Date().toISOString() };
-  if (_demoMode) return newItem;
   const { data, error } = await sb.from('taken').insert({
     user_id: currentUser.id, project_id: projectId,
     omschrijving: taak.omschrijving, deadline: taak.deadline || null, voltooid: false, type, tijd: taak.tijd || null, meerwerk
@@ -2305,16 +2237,13 @@ async function addTaakDB(projectId, taak) {
   return data;
 }
 async function updateTaakDB(id, updates) {
-  if (_demoMode) return;
   const { error } = await sb.from('taken').update(updates).eq('id', id);
   if (error) throw error;
 }
-async function deleteTaakDB(id) { if (!_demoMode) await sb.from('taken').delete().eq('id', id); }
+async function deleteTaakDB(id) { await sb.from('taken').delete().eq('id', id); }
 
 async function addMateriaalDB(projectId, m) {
   const meerwerk = m.meerwerk || false;
-  const newItem = { id: generateUUID(), naam: m.naam, hoeveelheid: m.hoeveelheid || null, eenheid: m.eenheid || '', prijs: m.prijs || null, meerwerk, aangemaakt: new Date().toISOString() };
-  if (_demoMode) return newItem;
   const { data, error } = await sb.from('materialen').insert({
     user_id: currentUser.id, project_id: projectId,
     naam: m.naam, hoeveelheid: m.hoeveelheid || null,
@@ -2323,12 +2252,10 @@ async function addMateriaalDB(projectId, m) {
   if (error) throw error;
   return data;
 }
-async function deleteMateriaalDB(id) { if (!_demoMode) await sb.from('materialen').delete().eq('id', id); }
+async function deleteMateriaalDB(id) { await sb.from('materialen').delete().eq('id', id); }
 
 async function addUrenDB(projectId, u) {
   const meerwerk = u.meerwerk || false;
-  const newItem = { id: generateUUID(), datum: u.datum, uren: u.uren, omschrijving: u.omschrijving || '', meerwerk, aangemaakt: new Date().toISOString() };
-  if (_demoMode) return newItem;
   const { data, error } = await sb.from('uren').insert({
     user_id: currentUser.id, project_id: projectId,
     datum: u.datum, uren: u.uren, omschrijving: u.omschrijving || '', meerwerk
@@ -2336,10 +2263,9 @@ async function addUrenDB(projectId, u) {
   if (error) throw error;
   return data;
 }
-async function deleteUrenDB(id) { if (!_demoMode) await sb.from('uren').delete().eq('id', id); }
+async function deleteUrenDB(id) { await sb.from('uren').delete().eq('id', id); }
 
 async function updateUrenDB(id, updates) {
-  if (_demoMode) return;
   const row = {};
   if (updates.uren !== undefined) row.uren = updates.uren;
   if (updates.datum !== undefined) row.datum = updates.datum;
@@ -2349,8 +2275,6 @@ async function updateUrenDB(id, updates) {
 }
 
 async function addRitDB(projectId, r) {
-  const newItem = { id: generateUUID(), datum: r.datum, km: r.km, omschrijving: r.omschrijving || '', vanuit: r.vanuit || null, bestemming: r.bestemming || null, aangemaakt: new Date().toISOString() };
-  if (_demoMode) return newItem;
   const { data, error } = await sb.from('ritten').insert({
     user_id: currentUser.id, project_id: projectId,
     datum: r.datum, km: r.km, omschrijving: r.omschrijving || '',
@@ -2359,11 +2283,9 @@ async function addRitDB(projectId, r) {
   if (error) throw error;
   return data;
 }
-async function deleteRitDB(id) { if (!_demoMode) await sb.from('ritten').delete().eq('id', id); }
+async function deleteRitDB(id) { await sb.from('ritten').delete().eq('id', id); }
 
 async function addNotitieDB(projectId, n) {
-  const newItem = { id: generateUUID(), tekst: n.tekst, datum: n.datum || null, tijd: n.tijd || null, aangemaakt: new Date().toISOString() };
-  if (_demoMode) return newItem;
   const { data, error } = await sb.from('notities').insert({
     user_id: currentUser.id, project_id: projectId,
     tekst: n.tekst, datum: n.datum || null, tijd: n.tijd || null
@@ -2371,24 +2293,9 @@ async function addNotitieDB(projectId, n) {
   if (error) throw error;
   return data;
 }
-async function deleteNotitieDB(id) { if (!_demoMode) await sb.from('notities').delete().eq('id', id); }
+async function deleteNotitieDB(id) { await sb.from('notities').delete().eq('id', id); }
 
 async function updateProjectFields(projectId, row) {
-  if (_demoMode) {
-    const p = _localProjects.find(p => p.id === projectId);
-    if (p) {
-      if (row.naam !== undefined) p.naam = row.naam;
-      if (row.status !== undefined) p.status = row.status;
-      if (row.klant_naam !== undefined) p.klant.naam = row.klant_naam;
-      if (row.klant_adres !== undefined) p.klant.adres = row.klant_adres;
-      if (row.klant_postcode !== undefined) p.klant.postcode = row.klant_postcode;
-      if (row.klant_plaats !== undefined) p.klant.plaats = row.klant_plaats;
-      if (row.klant_telefoon !== undefined) p.klant.telefoon = row.klant_telefoon;
-      if (row.klant_email !== undefined) p.klant.email = row.klant_email;
-    }
-    _projectsListCache = _localProjects;
-    return;
-  }
   const { error } = await sb.from('projects').update(row).eq('id', projectId);
   if (error) throw error;
   _projectsListCache = null;
@@ -2408,7 +2315,6 @@ function rowToLead(r) {
 }
 
 async function loadLeads() {
-  if (_demoMode) return _localLeads;
   try {
     const { data, error } = await sb.from('leads').select('*')
       .eq('user_id', currentUser.id).order('aangemaakt', { ascending: false });
@@ -2418,11 +2324,6 @@ async function loadLeads() {
 }
 
 async function addLead(data) {
-  if (_demoMode) {
-    const lead = { id: generateUUID(), naam: data.naam || '', telefoon: data.telefoon || '', email: data.email || '', adres: data.adres || '', notitie: data.notitie || '', bron: data.bron || '', opvolging: data.opvolging || '', opvolgingNotitie: data.opvolgingNotitie || '', aangemaakt: new Date().toISOString(), status: data.status || 'nieuw' };
-    _localLeads.unshift(lead);
-    return lead;
-  }
   const { data: row, error } = await sb.from('leads').insert({
     user_id: currentUser.id, naam: data.naam || '',
     telefoon: data.telefoon || '', email: data.email || '',
@@ -2436,11 +2337,6 @@ async function addLead(data) {
 }
 
 async function updateLead(leadId, updates) {
-  if (_demoMode) {
-    const lead = _localLeads.find(l => l.id === leadId);
-    if (lead) Object.assign(lead, updates);
-    return;
-  }
   const row = {};
   const map = { naam:'naam', telefoon:'telefoon', email:'email', adres:'adres',
     notitie:'notitie', bron:'bron', status:'status',
@@ -2455,15 +2351,10 @@ async function updateLead(leadId, updates) {
 }
 
 async function deleteLead(leadId) {
-  if (_demoMode) {
-    _localLeads = _localLeads.filter(l => l.id !== leadId);
-    return;
-  }
   await sb.from('leads').delete().eq('id', leadId);
 }
 
 async function getLead(leadId) {
-  if (_demoMode) return _localLeads.find(l => l.id === leadId) || null;
   const { data } = await sb.from('leads').select('*').eq('id', leadId).single();
   return data ? rowToLead(data) : null;
 }
@@ -2474,9 +2365,6 @@ async function getLead(leadId) {
 
 async function getNextDocumentNumber(prefix) {
   const jaar = new Date().getFullYear();
-  if (_demoMode) {
-    return prefix + jaar + '-' + String(++_demoDocCounters[prefix]).padStart(3, '0');
-  }
   try {
     const { data: counter } = await sb.from('document_counters')
       .select('teller').eq('user_id', currentUser.id).eq('prefix', prefix).eq('jaar', jaar).single();
@@ -2537,7 +2425,6 @@ async function deleteFotoDB(fotoId, storagePath) {
 // ===================================================
 
 async function loadTemplates() {
-  if (_demoMode) return [];
   try {
     const { data } = await sb.from('templates').select('*, template_taken(*), template_materialen(*)')
       .eq('user_id', currentUser.id);
@@ -3105,10 +2992,8 @@ async function toggleMeerwerk(arrayKey, itemId) {
   const newVal = !item.meerwerk;
   item.meerwerk = newVal;
   try {
-    if (!_demoMode) {
-      const { error } = await sb.from(arrayKey).update({ meerwerk: newVal }).eq('id', itemId);
-      if (error) throw error;
-    }
+    const { error } = await sb.from(arrayKey).update({ meerwerk: newVal }).eq('id', itemId);
+    if (error) throw error;
     await switchTab(currentTab);
     showToast(newVal ? 'Gemarkeerd als meerwerk' : 'Meerwerk verwijderd');
   } catch (err) { logError('toggleMeerwerk', err); item.meerwerk = !newVal; showToast('Fout bij bijwerken'); }
@@ -3738,7 +3623,17 @@ function openModal() {
 
 function closeModal(e) {
   if (!e || e.target === document.getElementById('modal-overlay')) {
-    document.getElementById('modal-overlay').classList.remove('open');
+    const overlay = document.getElementById('modal-overlay');
+    overlay.classList.remove('open');
+
+    // Reset timer-modal centered styles terug naar bottom-sheet defaults
+    if (window._timerModalOpen) {
+      overlay.style.alignItems = '';
+      overlay.style.justifyContent = '';
+      overlay.style.padding = '';
+      window._timerModalOpen = false;
+    }
+
     window._pendingSharePdf = null;
     window._pendingShareFilename = null;
 
@@ -5379,7 +5274,7 @@ async function renderDagstartScherm() {
     const maandagStr = localDateStr(maandag);
     const zondagStr = localDateStr(zondag);
 
-    if (!_demoMode && currentUser) {
+    if (currentUser) {
       const [{ data: urenData }, { data: facturenData }] = await Promise.all([
         sb.from('uren').select('uren').eq('user_id', currentUser.id)
           .gte('datum', maandagStr).lte('datum', zondagStr),
@@ -5642,16 +5537,23 @@ function startTimerVanProject(projectId, projectNaam) {
   if (bestaand) { showToast('Stop eerst de huidige timer'); return; }
 
   // Modal tonen om omschrijving in te vullen
-  const modal = document.getElementById('modal-overlay');
-  modal.innerHTML = `
-    <div class="modal-content" style="max-width:400px;">
+  const overlay = document.getElementById('modal-overlay');
+
+  // Tijdelijk overlay centred maken i.p.v. bottom-sheet
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.style.padding = '24px';
+  window._timerModalOpen = true;
+
+  overlay.innerHTML = `
+    <div class="modal" style="border-radius:16px;max-width:320px;width:100%;padding:24px 20px;animation:none;">
       <h3 style="margin:0 0 12px 0;font-size:1.1rem;">⏱ Timer starten</h3>
       <p style="margin:0 0 4px 0;font-size:.85rem;color:#666;">${escHtml(projectNaam)}</p>
       <label style="font-size:.9rem;font-weight:600;display:block;margin:12px 0 6px;">Wat ga je doen?</label>
       <input id="timer-start-omschrijving" type="text" placeholder="Bijv. timmeren, schilderen..." style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:1rem;box-sizing:border-box;" autofocus>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;">
-        <button onclick="confirmStartTimer('${projectId}', '${escHtml(projectNaam)}', true)" style="padding:12px;background:var(--primary,#2563eb);color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;">Start timer</button>
-        <button onclick="confirmStartTimer('${projectId}', '${escHtml(projectNaam)}', false)" style="padding:8px;background:none;color:#666;border:none;font-size:.85rem;cursor:pointer;text-decoration:underline;">Start zonder omschrijving</button>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:16px;">
+        <button onclick="confirmStartTimer('${projectId}', '${escHtml(projectNaam)}', true)" class="btn btn-primary" style="width:100%;padding:12px;border-radius:8px;font-size:1rem;">Start timer</button>
+        <span onclick="confirmStartTimer('${projectId}', '${escHtml(projectNaam)}', false)" style="color:#888;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:4px 0;">Start zonder omschrijving</span>
       </div>
     </div>`;
   openModal();
