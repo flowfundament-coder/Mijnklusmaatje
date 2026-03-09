@@ -7,8 +7,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>KlusMaatje</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -295,21 +295,10 @@
     .pricing-features li.included { color: var(--text); }
     .pricing-features li.excluded { color: var(--muted); opacity: 0.6; }
 
-    /* === LOCKED BUTTON === */
-    .mic-btn-locked {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border: none;
-      background: var(--border);
-      color: var(--muted);
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
+    /* === UTILITY CLASSES === */
+    .form-group-last { margin-bottom: 0; }
+    .meerwerk-label { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 14px; cursor: pointer; }
+    .meerwerk-checkbox { width: 18px; height: 18px; accent-color: var(--orange); }
 
     /* === CONTENT AREA === */
     .content { padding: 16px; flex: 1; }
@@ -363,10 +352,11 @@
       background: var(--red);
       box-shadow: 0 4px 20px rgba(239,68,68,0.4);
       animation: pulse 1.2s infinite;
+      will-change: transform, opacity;
     }
     @keyframes pulse {
-      0%, 100% { box-shadow: 0 4px 20px rgba(239,68,68,0.4); transform: scale(1); }
-      50% { box-shadow: 0 4px 40px rgba(239,68,68,0.6), 0 0 0 16px rgba(239,68,68,0.08); transform: scale(1.04); }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.04); }
     }
     .mic-btn.processing {
       background: var(--yellow);
@@ -394,7 +384,7 @@
       transition: background 0.15s;
     }
     .mic-btn-compact:active { opacity: 0.8; }
-    .mic-btn-compact.recording { background: var(--red); animation: pulse 1.2s infinite; }
+    .mic-btn-compact.recording { background: var(--red); animation: pulse 1.2s infinite; will-change: transform, opacity; }
     .mic-btn-compact.processing { background: var(--yellow); animation: spin-fade 1s ease-in-out infinite; }
     .mic-btn-compact svg { width: 20px; height: 20px; }
     .home-hint {
@@ -424,6 +414,7 @@
       pointer-events: none;
       z-index: 20;
       transition: opacity 0.22s ease, transform 0.22s ease;
+      will-change: transform, opacity;
     }
     .ai-notification-bar.visible {
       opacity: 1;
@@ -831,15 +822,6 @@
       width: 22px;
       height: 22px;
       min-width: 22px;
-      border-radius: 6px;
-      border: 2px solid var(--border);
-      background: transparent;
-      flex-shrink: 0;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      -webkit-tap-highlight-color: transparent;
     }
     .planning-item-info { flex: 1; min-width: 0; }
     .planning-item-title { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.3; }
@@ -873,6 +855,7 @@
       z-index: 300;
       opacity: 0;
       transition: opacity 0.2s, transform 0.2s;
+      will-change: transform, opacity;
       white-space: nowrap;
       max-width: calc(100% - 32px);
       text-align: center;
@@ -1009,7 +992,7 @@
       -webkit-tap-highlight-color: transparent;
     }
     .dagstart-timer-btn:active { opacity: 0.75; }
-    .dagstart-timer-btn.active-timer { background: var(--red-bg); color: var(--red); width: auto; min-width: 36px; padding: 4px 8px; flex-direction: column; gap: 1px; }
+    .dagstart-timer-btn.active-timer { background: var(--red-bg); color: var(--red); width: auto; min-width: 36px; padding: 4px 8px; display: inline-flex; flex-direction: column; gap: 1px; }
     .dagstart-timer-btn.disabled { opacity: 0.35; pointer-events: none; }
     .badge-clickable { cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .badge-clickable:active { opacity: 0.7; }
@@ -1726,6 +1709,8 @@ let currentUser = null;
 // AppState.currentProjectData: moved to AppState.AppState.currentProjectData (see NAVIGATION section)
 let _pendingShareText = '';
 let _pendingSharePhone = '';
+window._pendingSharePdf = null;
+window._pendingShareFilename = null;
 let _settingsCache = null;
 let _projectsListCache = null; // for AI findProject
 let _demoMode = false; // true = lokale data, geen Supabase
@@ -3488,7 +3473,10 @@ function parseSlimmeDatum(regelTekst) {
   const vandaag = new Date(); vandaag.setHours(0,0,0,0);
 
   function datumStr(d) {
-    return d.toISOString().slice(0, 10);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }
 
   function eerstvolgendeWeekdag(dagNr) { // 0=zo,1=ma,...,6=za
@@ -3623,7 +3611,7 @@ function openAddModal(type) {
         <textarea class="form-input" id="m-regels" rows="5" placeholder="Primer aanbrengen&#10;Kozijnen schuren wo&#10;Klant wil RAL 9010 /notitie&#10;Oplevering 29 maart 14:00" autofocus style="resize:none;min-height:120px;line-height:1.5"></textarea>
       </div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Typ één item per regel. Datum wordt automatisch herkend. Typ /notitie voor een notitie.</p>
-      <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:14px;cursor:pointer"><input type="checkbox" id="m-meerwerk" style="width:18px;height:18px;accent-color:var(--orange)"> Meerwerk</label>
+      <label class="meerwerk-label"><input type="checkbox" id="m-meerwerk" class="meerwerk-checkbox"> Meerwerk</label>
       <button class="btn btn-primary btn-full" id="m-taak-btn" onclick="submitItem('taak')">Toevoegen</button>`,
 
     materiaal: `
@@ -3637,7 +3625,7 @@ function openAddModal(type) {
       </div>
       <div class="form-group"><label class="form-label">Prijs per eenheid (€, optioneel)</label>
         <input class="form-input" id="m-prijs" type="number" placeholder="12.50" min="0" step="0.01"></div>
-      <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:14px;cursor:pointer"><input type="checkbox" id="m-meerwerk" style="width:18px;height:18px;accent-color:var(--orange)"> Meerwerk</label>
+      <label class="meerwerk-label"><input type="checkbox" id="m-meerwerk" class="meerwerk-checkbox"> Meerwerk</label>
       <button class="btn btn-primary btn-full" onclick="submitItem('materiaal')">Materiaal toevoegen</button>`,
 
     uren: `
@@ -3647,7 +3635,7 @@ function openAddModal(type) {
         <input class="form-input" id="m-datum" type="date" value="${todayStr()}"></div>
       <div class="form-group"><label class="form-label">Omschrijving (optioneel)</label>
         <input class="form-input" id="m-omschrijving" type="text" placeholder="Bijv. Schilderwerk woonkamer"></div>
-      <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:14px;cursor:pointer"><input type="checkbox" id="m-meerwerk" style="width:18px;height:18px;accent-color:var(--orange)"> Meerwerk</label>
+      <label class="meerwerk-label"><input type="checkbox" id="m-meerwerk" class="meerwerk-checkbox"> Meerwerk</label>
       <button class="btn btn-primary btn-full" onclick="submitItem('uren')">Uren registreren</button>`,
 
     rit: `
@@ -3685,11 +3673,14 @@ function openAddModal(type) {
     if (type === 'taak') {
       const ta = document.getElementById('m-regels');
       const btn = document.getElementById('m-taak-btn');
-      function updateBtn() {
-        const regels = (ta.value || '').split('\n').filter(r => r.trim()).length;
-        btn.textContent = regels > 0 ? `Toevoegen (${regels} ${regels === 1 ? 'item' : 'items'})` : 'Toevoegen';
+      if (ta && btn) {
+        const updateBtn = () => {
+          const regels = (ta.value || '').split('\n').filter(r => r.trim()).length;
+          btn.textContent = regels > 0 ? `Toevoegen (${regels} ${regels === 1 ? 'item' : 'items'})` : 'Toevoegen';
+        };
+        ta.addEventListener('input', updateBtn);
+        // Cleanup listener when modal is closed (innerHTML cleared removes element + listener)
       }
-      ta.addEventListener('input', updateBtn);
     }
   }, 300);
 }
@@ -3748,6 +3739,8 @@ function openModal() {
 function closeModal(e) {
   if (!e || e.target === document.getElementById('modal-overlay')) {
     document.getElementById('modal-overlay').classList.remove('open');
+    window._pendingSharePdf = null;
+    window._pendingShareFilename = null;
 
     // Vangnet: als timer-uren nog niet opgeslagen, doe het alsnog
     if (window._timerStopData) {
@@ -3767,10 +3760,9 @@ function closeModal(e) {
 let planningTab = 'today';
 let _planningOpen = {}; // { [projectId]: bool } — ingeklapt by default
 
-function togglePlanningGroup(projectId) {
+async function togglePlanningGroup(projectId) {
   _planningOpen[projectId] = !_planningOpen[projectId];
-  // Re-render only the toggled card for snelheid
-  renderPlanning();
+  await renderPlanning();
 }
 
 async function switchPlanningTab(tab) {
@@ -3785,8 +3777,8 @@ async function switchPlanningTab(tab) {
 async function renderPlanning() {
   const today = new Date(); today.setHours(0,0,0,0);
   const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-  const todayStr = today.toISOString().slice(0, 10);
-  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+  const todayStr = localDateStr(today);
+  const tomorrowStr = localDateStr(tomorrow);
   const [allProjects, allLeads] = await Promise.all([loadProjects(), loadLeads()]);
   const projects = allProjects.filter(p => p.status !== 'afgerond');
   const el = document.getElementById('planning-content');
@@ -3889,36 +3881,40 @@ async function renderPlanning() {
 
   const projectGroups = [];
   projects.forEach(p => {
+    // Notities (type='notitie') met deadline op deze dag
     const afsprakenVandaag = (p.taken || []).filter(t => t.type === 'notitie' && t.deadline && t.deadline.startsWith(dayStr));
-    const takenMetDeadlineVandaag = (p.taken || []).filter(t => t.type !== 'notitie' && !t.voltooid && (t.deadline || '').startsWith(dayStr));
-    const takenMetDeadlineMorgen = isToday
-      ? (p.taken || []).filter(t => t.type !== 'notitie' && !t.voltooid && (t.deadline || '').startsWith(tomorrowStr))
-      : [];
 
-    const heeftAfspraak = afsprakenVandaag.length > 0;
-    const heeftDeadline = takenMetDeadlineVandaag.length > 0 || takenMetDeadlineMorgen.length > 0;
-    if (!heeftAfspraak && !heeftDeadline) return;
+    // Open taken (type='taak') met deadline op deze dag
+    const takenMetDeadline = (p.taken || []).filter(t => t.type !== 'notitie' && !t.voltooid && (t.deadline || '').startsWith(dayStr));
 
-    const openTaken = (p.taken || []).filter(t => !t.voltooid && t.type !== 'notitie');
+    // Project verschijnt als er IETS relevants is voor deze dag
+    if (afsprakenVandaag.length === 0 && takenMetDeadline.length === 0) return;
+
+    // Alleen taken die relevant zijn voor deze dag:
+    // - taken met deadline op deze dag
+    // - taken zonder deadline (altijd relevant)
+    const openTaken = (p.taken || []).filter(t =>
+      !t.voltooid && t.type !== 'notitie' &&
+      (!t.deadline || (t.deadline || '').startsWith(dayStr))
+    );
     const sortedAfspraken = [...afsprakenVandaag].sort((a, b) => {
       if (!a.tijd && !b.tijd) return 0;
       if (!a.tijd) return 1;
       if (!b.tijd) return -1;
       return a.tijd.localeCompare(b.tijd);
     });
+    // Sorteer: taken met deadline voor deze dag bovenaan, dan andere deadlines, dan zonder deadline
     const sortedTaken = [...openTaken].sort((a, b) => {
-      const aToday = (a.deadline || '').startsWith(dayStr);
-      const bToday = (b.deadline || '').startsWith(dayStr);
-      const aTomorrow = isToday && (a.deadline || '').startsWith(tomorrowStr);
-      const bTomorrow = isToday && (b.deadline || '').startsWith(tomorrowStr);
-      if (aToday && !bToday) return -1;
-      if (!aToday && bToday) return 1;
-      if (aTomorrow && !bTomorrow) return -1;
-      if (!aTomorrow && bTomorrow) return 1;
+      const aIsTarget = (a.deadline || '').startsWith(dayStr) ? 0 : 1;
+      const bIsTarget = (b.deadline || '').startsWith(dayStr) ? 0 : 1;
+      if (aIsTarget !== bIsTarget) return aIsTarget - bIsTarget;
+      if (a.deadline && !b.deadline) return -1;
+      if (!a.deadline && b.deadline) return 1;
+      if (a.deadline && b.deadline) return a.deadline.localeCompare(b.deadline);
       return 0;
     });
     const vroegsteTijd = sortedAfspraken.find(a => a.tijd)?.tijd || 'ZZ:ZZ';
-    projectGroups.push({ project: p, afspraken: sortedAfspraken, taken: sortedTaken, heeftAfspraak, vroegsteTijd, dayStr, isToday });
+    projectGroups.push({ project: p, afspraken: sortedAfspraken, taken: sortedTaken, heeftAfspraak: afsprakenVandaag.length > 0, vroegsteTijd, dayStr, isToday });
   });
 
   projectGroups.sort((a, b) => {
@@ -3947,41 +3943,31 @@ async function renderPlanning() {
 
 function renderProjectGroup(card, todayStr, tomorrowStr, mode) {
   const { project: p, afspraken, taken } = card;
-  const isToday = mode === 'week' ? true : card.isToday;
   const MAX_TAKEN = 8;
   const isOpen = !!_planningOpen[p.id];
+
+  // Absolute datums voor badge-logica (onafhankelijk van welke tab actief is)
+  const absToday = new Date(); absToday.setHours(0,0,0,0);
+  const absTodayISO = localDateStr(absToday);
+  const absTomorrow = new Date(absToday); absTomorrow.setDate(absToday.getDate()+1);
+  const absTomorrowISO = localDateStr(absTomorrow);
 
   const klantLabel = p.klant?.naam ? escHtml(p.klant.naam) + ' · ' : '';
   const statusLabel = p.status === 'actief' ? 'Actief' : p.status === 'offerte' ? 'Offerte' : p.status;
 
-  // Urgente taken: deadline vandaag of morgen — altijd zichtbaar
+  // Urgente taken: deadline vandaag of morgen — altijd zichtbaar (ingeklapt)
   const urgenteTaken = taken.filter(t =>
-    (t.deadline || '').startsWith(todayStr) || (isToday && (t.deadline || '').startsWith(tomorrowStr))
+    (t.deadline || '').startsWith(absTodayISO) || (t.deadline || '').startsWith(absTomorrowISO)
   );
 
   // Samenvatting voor ingeklapte staat
   const summaryParts = [];
   if (afspraken.length) summaryParts.push('📅 ' + afspraken.length + (afspraken.length === 1 ? ' afspraak' : ' afspraken'));
   if (taken.length) summaryParts.push('✓ ' + taken.length + ' open ' + (taken.length === 1 ? 'taak' : 'taken'));
-  const urgentVandaag = taken.filter(t => (t.deadline || '').startsWith(todayStr)).length;
-  const urgentMorgen  = isToday ? taken.filter(t => (t.deadline || '').startsWith(tomorrowStr)).length : 0;
+  const urgentVandaag = taken.filter(t => (t.deadline || '').startsWith(absTodayISO)).length;
+  const urgentMorgen  = taken.filter(t => (t.deadline || '').startsWith(absTomorrowISO)).length;
   if (urgentVandaag) summaryParts.push('⚠ ' + urgentVandaag + ' deadline vandaag');
   else if (urgentMorgen) summaryParts.push('⚠ ' + urgentMorgen + ' deadline morgen');
-
-  // Altijd-zichtbare urgente taken (ingeklapt)
-  const urgenteTaakHTML = !isOpen && urgenteTaken.length > 0 ? urgenteTaken.map(t => {
-    const isDeadlineToday = (t.deadline || '').startsWith(todayStr);
-    const badgeHTML = isDeadlineToday
-      ? '<span class="planning-deadline-badge deadline-today">Vandaag</span>'
-      : '<span class="planning-deadline-badge deadline-tomorrow">Morgen</span>';
-    return `<div class="planning-item planning-item-taak">
-      <button class="checkbox-btn" data-action="toggle-taak-planning" data-project-id="${p.id}" data-id="${t.id}"></button>
-      <div class="planning-item-info">
-        <div class="planning-item-title">${escHtml(t.omschrijving)}</div>
-      </div>
-      ${badgeHTML}
-    </div>`;
-  }).join('') : '';
 
   // Volledig uitgeklapt
   const visibleTaken = taken.slice(0, MAX_TAKEN);
@@ -4012,15 +3998,18 @@ function renderProjectGroup(card, todayStr, tomorrowStr, mode) {
     ${visibleTaken.map(t => {
       let badgeHTML = '';
       if (t.deadline) {
-        if ((t.deadline || '').startsWith(todayStr)) {
+        if ((t.deadline || '').startsWith(absTodayISO)) {
           badgeHTML = '<span class="planning-deadline-badge deadline-today">Vandaag</span>';
-        } else if (isToday && (t.deadline || '').startsWith(tomorrowStr)) {
+        } else if ((t.deadline || '').startsWith(absTomorrowISO)) {
           badgeHTML = '<span class="planning-deadline-badge deadline-tomorrow">Morgen</span>';
-        } else if (mode === 'week') {
+        } else {
           const d = new Date(t.deadline); d.setHours(0,0,0,0);
-          const dayShort = d.toLocaleDateString('nl-NL', { weekday: 'short' });
-          const cap = dayShort.charAt(0).toUpperCase() + dayShort.slice(1, 2);
-          badgeHTML = `<span class="planning-deadline-badge deadline-week">${cap} ${d.getDate()}/${d.getMonth() + 1}</span>`;
+          const weekEnd = new Date(absToday); weekEnd.setDate(absToday.getDate() + 6);
+          if (d >= absToday && d <= weekEnd) {
+            const dayShort = d.toLocaleDateString('nl-NL', { weekday: 'short' });
+            const cap = dayShort.charAt(0).toUpperCase() + dayShort.slice(1, 2);
+            badgeHTML = `<span class="planning-deadline-badge deadline-week">${cap} ${d.getDate()}/${d.getMonth() + 1}</span>`;
+          }
         }
       }
       return `<div class="planning-item planning-item-taak">
@@ -4047,7 +4036,7 @@ function renderProjectGroup(card, todayStr, tomorrowStr, mode) {
         <path d="M9 18l6-6-6-6"/>
       </svg>
     </div>
-    ${!isOpen ? urgenteTaakHTML : (afspraakHTML + taakHTML)}
+    ${isOpen ? (afspraakHTML + taakHTML) : ''}
   </div>`;
 }
 
@@ -4070,14 +4059,20 @@ async function toggleTaakFromPlanning(projectId, taakId) {
 // FASE 5: DOCUMENT GENERATIE — jsPDF
 // ===================================================
 
+// Gedeelde PDF kleurconstanten (1× gedefinieerd)
+const PDF_COLORS = {
+  orange: [249, 115, 22],
+  navy:   [30, 41, 59],
+  muted:  [100, 116, 139],
+  light:  [241, 245, 249],
+};
+
 function fmtEuro(num) {
   return parseFloat(num || 0).toFixed(2).replace('.', ',');
 }
 
 function buildPdfHeader(doc, type, settings, project, nummer, datum, extra) {
-  const orange = [249, 115, 22];
-  const navy   = [30, 41, 59];
-  const muted  = [100, 116, 139];
+  const { orange, navy, muted } = PDF_COLORS;
   const lm = 20, rm = 190;
 
   // Oranje balk
@@ -4137,8 +4132,7 @@ function buildPdfHeader(doc, type, settings, project, nummer, datum, extra) {
   y += 8;
 
   // Klantblok
-  const light = [241, 245, 249];
-  doc.setFillColor(...light);
+  doc.setFillColor(...PDF_COLORS.light);
   doc.rect(lm, y, 170, 28, 'F');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
@@ -4167,9 +4161,7 @@ function buildPdfHeader(doc, type, settings, project, nummer, datum, extra) {
 }
 
 function buildPdfTotals(doc, y, subtotaal, btwPct) {
-  const orange = [249, 115, 22];
-  const navy   = [30, 41, 59];
-  const muted  = [100, 116, 139];
+  const { orange, navy, muted } = PDF_COLORS;
   const rm = 190;
 
   const btwBedrag = subtotaal * (btwPct / 100);
@@ -4243,12 +4235,11 @@ function pdfNewPageIfNeeded(doc, y, rowH) {
 
 function pdfAddPageFooters(doc, footerText) {
   const n = doc.getNumberOfPages();
-  const muted = [100, 116, 139];
   for (let i = 1; i <= n; i++) {
     doc.setPage(i);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(...muted);
+    doc.setTextColor(...PDF_COLORS.muted);
     doc.text(n > 1 ? `${footerText} · Pagina ${i} van ${n}` : footerText, 105, 290, { align: 'center' });
   }
 }
@@ -4274,10 +4265,7 @@ async function generateOfferte(force = false) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('p', 'mm', 'a4');
 
-  const orange = [249, 115, 22];
-  const navy   = [30, 41, 59];
-  const muted  = [100, 116, 139];
-  const light  = [241, 245, 249];
+  const { orange, navy, muted, light } = PDF_COLORS;
   const lm = 20, rm = 190;
 
   let y = buildPdfHeader(doc, 'OFFERTE', settings, p, nummer, datum, [['Geldig tot:', geldigStr]]);
@@ -4445,6 +4433,8 @@ async function generateOfferte(force = false) {
     }
   } catch (err) { logError('generateOfferte:save', err); }
 
+  window._pendingSharePdf = doc.output('blob');
+  window._pendingShareFilename = 'Offerte-' + nummer + '.pdf';
   doc.save('Offerte-' + nummer + '.pdf');
   const waText = `Offerte ${nummer}\nProject: ${p.naam}\nKlant: ${p.klant?.naam || '-'}\nTotaal incl. BTW: €\u00a0${fmtEuro(totaal)}\nGeldig tot: ${geldigStr}`;
   showShareModal(nummer, waText, p.klant?.naam || '', p.klant?.telefoon || '');
@@ -4471,10 +4461,7 @@ async function generateFactuur(force = false) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('p', 'mm', 'a4');
 
-  const orange = [249, 115, 22];
-  const navy   = [30, 41, 59];
-  const muted  = [100, 116, 139];
-  const light  = [241, 245, 249];
+  const { orange, navy, muted, light } = PDF_COLORS;
   const lm = 20, rm = 190;
 
   let y = buildPdfHeader(doc, 'FACTUUR', settings, p, nummer, datum, [['Vervaldatum:', vervalStr]]);
@@ -4613,8 +4600,8 @@ async function generateFactuur(force = false) {
       doc.setTextColor(...muted);
       doc.text(new Date(r.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }), 100, y + 4.3);
       doc.setTextColor(...navy);
-      doc.text(km + ' km x EUR ' + fmtEuro(kmVergoeding), 126, y + 4.3);
-      doc.text('EUR ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
+      doc.text(km + ' km × €' + fmtEuro(kmVergoeding), 126, y + 4.3);
+      doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
       y += rowH;
       doc.setDrawColor(...light);
       doc.setLineWidth(0.2);
@@ -4697,6 +4684,8 @@ async function generateFactuur(force = false) {
     }
   } catch (err) { logError('generateFactuur:save', err); }
 
+  window._pendingSharePdf = doc.output('blob');
+  window._pendingShareFilename = 'Factuur-' + nummer + '.pdf';
   doc.save('Factuur-' + nummer + '.pdf');
   const waText = `Factuur ${nummer}\nProject: ${p.naam}\nKlant: ${p.klant?.naam || '-'}\nTotaal incl. BTW: €\u00a0${fmtEuro(totaal)}\nBetalingstermijn: ${termijn} dagen (voor ${vervalStr})\nIBAN: ${settings.bankrekening || '-'}`;
   showShareModal(nummer, waText, p.klant?.naam || '', p.klant?.telefoon || '');
@@ -5309,8 +5298,15 @@ function escHtml(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function localDateStr(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  return localDateStr(new Date());
 }
 
 function fmtDate(iso) {
@@ -5320,12 +5316,14 @@ function fmtDate(iso) {
 }
 
 let toastTimer;
+let _toastEl = null;
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  if (!_toastEl) _toastEl = document.getElementById('toast');
+  if (!_toastEl) return;
+  _toastEl.textContent = msg;
+  _toastEl.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  toastTimer = setTimeout(() => _toastEl.classList.remove('show'), 2500);
 }
 
 // ===================================================
@@ -5367,27 +5365,9 @@ async function renderDagstartScherm() {
   renderDagstartTimerCard();
 
   // Data laden
-  const [projects, leads, settings] = await Promise.all([
-    loadProjects(), loadLeads(), loadSettings()
-  ]);
+  const settings = await loadSettings();
 
   const todayD = new Date(); todayD.setHours(0,0,0,0);
-  const tomorrowD = new Date(todayD); tomorrowD.setDate(todayD.getDate() + 1);
-  const todayStr = todayD.toISOString().slice(0,10);
-  const tomorrowStr = tomorrowD.toISOString().slice(0,10);
-
-  // Urgente items: taken met deadline vandaag + leads met opvolging vandaag
-  const urgenteItems = [];
-
-  projects.forEach(p => {
-    (p.taken || [])
-      .filter(t => !t.voltooid && t.type !== 'notitie' && (t.deadline || '').startsWith(todayStr))
-      .forEach(t => urgenteItems.push({ type: 'taak', taak: t, project: p }));
-  });
-
-  leads
-    .filter(l => l.opvolging && l.opvolging.startsWith(todayStr) && l.status !== 'verloren')
-    .forEach(l => urgenteItems.push({ type: 'lead', lead: l }));
 
   // Weekoverzicht berekenen
   let weekUren = 0, weekBedrag = 0, openFacturenAantal = 0, openFacturenBedrag = 0;
@@ -5396,8 +5376,8 @@ async function renderDagstartScherm() {
     const dagNr = maandag.getDay();
     maandag.setDate(maandag.getDate() - (dagNr === 0 ? 6 : dagNr - 1));
     const zondag = new Date(maandag); zondag.setDate(maandag.getDate() + 6);
-    const maandagStr = maandag.toISOString().slice(0,10);
-    const zondagStr = zondag.toISOString().slice(0,10);
+    const maandagStr = localDateStr(maandag);
+    const zondagStr = localDateStr(zondag);
 
     if (!_demoMode && currentUser) {
       const [{ data: urenData }, { data: facturenData }] = await Promise.all([
@@ -5427,47 +5407,6 @@ async function renderDagstartScherm() {
   if (!mainEl) return;
 
   let html = '';
-
-  // Urgente items sectie
-  const MAX_URGENT = 3;
-  const zichtbaar = urgenteItems.slice(0, MAX_URGENT);
-  const meer = urgenteItems.length - zichtbaar.length;
-
-  html += `<div class="dagstart-section-title">VANDAAG</div>`;
-
-  if (!urgenteItems.length) {
-    html += `<p style="font-size:14px;color:var(--muted);margin-bottom:12px">Geen urgente taken vandaag</p>`;
-  } else {
-    html += `<div class="card" style="margin-bottom:12px">`;
-    zichtbaar.forEach(item => {
-      if (item.type === 'taak') {
-        const t = item.taak;
-        const p = item.project;
-        html += `<div class="item-row" style="cursor:pointer" data-action="open-project" data-id="${p.id}">
-          <span style="font-size:17px;flex-shrink:0">⚠</span>
-          <div class="item-row-info">
-            <div class="item-row-title">${escHtml(t.omschrijving)} — deadline vandaag</div>
-            <div class="item-row-sub">${escHtml(p.naam)}${p.klant?.naam ? ' · ' + escHtml(p.klant.naam) : ''}</div>
-          </div>
-        </div>`;
-      } else {
-        const l = item.lead;
-        html += `<div class="item-row" style="cursor:pointer" data-action="open-lead" data-id="${l.id}">
-          <span style="font-size:17px;flex-shrink:0">🔔</span>
-          <div class="item-row-info">
-            <div class="item-row-title">${escHtml(l.naam)} opvolgen</div>
-            ${l.opvolgingNotitie ? `<div class="item-row-sub">${escHtml(l.opvolgingNotitie)}</div>` : ''}
-          </div>
-        </div>`;
-      }
-    });
-    if (meer > 0) {
-      html += `<div class="item-row" style="cursor:pointer" onclick="showScreen('planning')">
-        <div class="item-row-info" style="color:var(--orange);font-size:14px;font-weight:600">+${meer} meer urgente items →</div>
-      </div>`;
-    }
-    html += `</div>`;
-  }
 
   // Weekoverzicht (altijd tonen als ingelogd)
   const weekUrenStr = weekUren % 1 === 0 ? weekUren : weekUren.toFixed(1);
@@ -5591,10 +5530,12 @@ async function toggleProjectStatusFromList(projectId) {
 
 let timerInterval = null;
 let timerTickInterval = null;
+let _timerDataCache = null;
+let _timerDisplayEls = null;
 
 function initTimer() {
-  const data = getTimerData();
-  if (data) {
+  _timerDataCache = getTimerData();
+  if (_timerDataCache) {
     timerInterval = setInterval(renderDagstartTimerCard, 30000);
     startTimerTick();
   }
@@ -5602,28 +5543,41 @@ function initTimer() {
 
 function startTimerTick() {
   if (timerTickInterval) return;
+  _timerDisplayEls = null; // force re-query
   timerTickInterval = setInterval(updateTimerDisplays, 1000);
 }
 
 function stopTimerTick() {
   if (timerTickInterval) { clearInterval(timerTickInterval); timerTickInterval = null; }
+  _timerDisplayEls = null;
 }
 
 function updateTimerDisplays() {
-  const data = getTimerData();
-  if (!data) { stopTimerTick(); return; }
-  const ms = Date.now() - data.start;
+  if (!_timerDataCache) { _timerDataCache = getTimerData(); }
+  if (!_timerDataCache) { stopTimerTick(); return; }
+  const ms = Date.now() - _timerDataCache.start;
   const u = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
   const s = Math.floor((ms % 60000) / 1000);
   const timeStr = `${u}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  document.querySelectorAll('.dagstart-timer-btn.active-timer .timer-elapsed').forEach(el => {
-    el.textContent = timeStr;
-  });
+  if (!_timerDisplayEls || _timerDisplayEls.length === 0) {
+    _timerDisplayEls = document.querySelectorAll('.dagstart-timer-btn.active-timer .timer-elapsed');
+  }
+  _timerDisplayEls.forEach(el => { el.textContent = timeStr; });
 }
 
 function getTimerData() {
   try { return JSON.parse(localStorage.getItem('bouwbuddy_timer') || 'null'); } catch (err) { logError('getTimerData', err); return null; }
+}
+
+function setTimerData(data) {
+  _timerDataCache = data;
+  _timerDisplayEls = null;
+  if (data) {
+    localStorage.setItem('bouwbuddy_timer', JSON.stringify(data));
+  } else {
+    localStorage.removeItem('bouwbuddy_timer');
+  }
 }
 
 function renderDagstartTimerCard() {
@@ -5655,11 +5609,6 @@ function renderDagstartTimerCard() {
   </div>`;
 }
 
-// Alias for backward compat (called from old code paths)
-async function renderTimerArea() {
-  renderDagstartTimerCard();
-}
-
 async function startTimer() {
   // Voor AI-spraakcommando's: open modal met projectkeuze
   const projects = (await loadProjects()).filter(p => p.status === 'actief');
@@ -5680,7 +5629,7 @@ async function startTimer() {
 function confirmStartTimer() {
   const projectId = document.getElementById('m-timer-project')?.value || null;
   const omschrijving = document.getElementById('m-timer-omschrijving')?.value.trim() || '';
-  localStorage.setItem('bouwbuddy_timer', JSON.stringify({ start: Date.now(), projectId, omschrijving }));
+  setTimerData({ start: Date.now(), projectId, omschrijving });
   if (!timerInterval) timerInterval = setInterval(renderDagstartTimerCard, 30000);
   startTimerTick();
   closeModal();
@@ -5689,14 +5638,34 @@ function confirmStartTimer() {
 }
 
 function startTimerVanProject(projectId, projectNaam) {
-  // Directe timer start vanuit dagstart project card (één tik)
   const bestaand = getTimerData();
   if (bestaand) { showToast('Stop eerst de huidige timer'); return; }
-  localStorage.setItem('bouwbuddy_timer', JSON.stringify({ start: Date.now(), projectId, omschrijving: '' }));
+
+  // Modal tonen om omschrijving in te vullen
+  const modal = document.getElementById('modal-overlay');
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width:400px;">
+      <h3 style="margin:0 0 12px 0;font-size:1.1rem;">⏱ Timer starten</h3>
+      <p style="margin:0 0 4px 0;font-size:.85rem;color:#666;">${escHtml(projectNaam)}</p>
+      <label style="font-size:.9rem;font-weight:600;display:block;margin:12px 0 6px;">Wat ga je doen?</label>
+      <input id="timer-start-omschrijving" type="text" placeholder="Bijv. timmeren, schilderen..." style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:1rem;box-sizing:border-box;" autofocus>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;">
+        <button onclick="confirmStartTimer('${projectId}', '${escHtml(projectNaam)}', true)" style="padding:12px;background:var(--primary,#2563eb);color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;">Start timer</button>
+        <button onclick="confirmStartTimer('${projectId}', '${escHtml(projectNaam)}', false)" style="padding:8px;background:none;color:#666;border:none;font-size:.85rem;cursor:pointer;text-decoration:underline;">Start zonder omschrijving</button>
+      </div>
+    </div>`;
+  openModal();
+  setTimeout(() => { const inp = document.getElementById('timer-start-omschrijving'); if (inp) inp.focus(); }, 100);
+}
+
+function confirmStartTimer(projectId, projectNaam, metOmschrijving) {
+  const omschrijving = metOmschrijving ? (document.getElementById('timer-start-omschrijving')?.value?.trim() || '') : '';
+  closeModal({ target: document.getElementById('modal-overlay') });
+
+  setTimerData({ start: Date.now(), projectId, omschrijving });
   if (!timerInterval) timerInterval = setInterval(renderDagstartTimerCard, 30000);
   startTimerTick();
   renderDagstartTimerCard();
-  // Alle timer-buttons updaten (dagstart + projectenlijst)
   document.querySelectorAll('.dagstart-timer-btn').forEach(btn => {
     const btnId = btn.dataset.id;
     if (btnId === projectId || btn.getAttribute('onclick')?.includes(projectId)) {
@@ -5720,7 +5689,7 @@ async function stopTimerDirect() {
   const uren = Math.max(0.25, Math.round(ms / 3600000 / 0.25) * 0.25);
   const projectId = data.projectId;
 
-  localStorage.removeItem('bouwbuddy_timer');
+  setTimerData(null);
   clearInterval(timerInterval);
   timerInterval = null;
   stopTimerTick();
@@ -5730,7 +5699,7 @@ async function stopTimerDirect() {
   if (projectId) {
     try {
       await addUrenDB(projectId, {
-        datum: new Date().toISOString().slice(0,10),
+        datum: localDateStr(new Date()),
         uren,
         omschrijving: data.omschrijving || ''
       });
@@ -5759,11 +5728,11 @@ async function stopTimer() {
   const uren = Math.max(0.25, Math.round(ms / 3600000 / 0.25) * 0.25);
 
   // Wis timer
-  localStorage.removeItem('bouwbuddy_timer');
+  setTimerData(null);
   clearInterval(timerInterval);
   timerInterval = null;
   stopTimerTick();
-  await renderTimerArea();
+  renderDagstartTimerCard();
 
   // Zoek projectnaam
   const projects = _projectsListCache || await loadProjects();
@@ -5904,16 +5873,30 @@ function showShareModal(nummer, whatsappText, klantNaam = '', klantTelefoon = ''
   _pendingShareText  = whatsappText;
   _pendingSharePhone = klantTelefoon;
 
+  const p = AppState.currentProjectData;
+  const klantEmail = p?.klant?.email || '';
+
   const ontvangerHtml = klantNaam
     ? `<p style="color:var(--muted);font-size:13px;margin-bottom:12px">
-        Verstuur naar <strong>${escHtml(klantNaam)}</strong>${klantTelefoon ? ' (' + escHtml(klantTelefoon) + ')' : ''}
+        Verstuur naar <strong>${escHtml(klantNaam)}</strong>${klantTelefoon ? ' (' + escHtml(klantTelefoon) + ')' : ''}${klantEmail ? ' — ' + escHtml(klantEmail) : ''}
        </p>`
+    : '';
+
+  const emailTip = !klantEmail
+    ? `<p style="color:var(--muted);font-size:11px;margin-top:-4px;margin-bottom:8px;text-align:center">Tip: vul het e-mailadres in bij klantgegevens voor automatisch invullen</p>`
     : '';
 
   document.getElementById('modal-title').textContent = nummer + ' aangemaakt';
   document.getElementById('modal-body').innerHTML = `
     <p style="color:var(--muted);font-size:14px;margin-bottom:12px">PDF is gedownload naar je apparaat.</p>
     ${ontvangerHtml}
+    <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Verstuur via e-mail</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button class="btn" style="flex:1;background:#EA4335;color:#fff" onclick="shareViaGmail()">Gmail</button>
+      <button class="btn" style="flex:1;background:#0078D4;color:#fff" onclick="shareViaOutlook()">Outlook</button>
+      <button class="btn" style="flex:1;background:var(--orange);color:#fff" onclick="shareViaEmail()">Andere mail</button>
+    </div>
+    ${emailTip}
     <button class="btn btn-full" style="background:#25D366;color:#fff;margin-bottom:8px"
       onclick="doWhatsAppShare()">
       📤 Deel samenvatting via WhatsApp
@@ -5924,6 +5907,74 @@ function showShareModal(nummer, whatsappText, klantNaam = '', klantTelefoon = ''
     </button>
     <button class="btn btn-secondary btn-full" onclick="closeModal()">Sluiten</button>`;
   openModal();
+}
+
+function _buildEmailContent() {
+  const p = AppState.currentProjectData;
+  const email = p?.klant?.email || '';
+  const filename = window._pendingShareFilename || 'document.pdf';
+  const docType = filename.includes('Factuur') ? 'de factuur' : 'de offerte';
+  const subject = filename.replace('.pdf', '');
+  const body = 'Beste ' + (p?.klant?.naam || '') + ',\n\n' +
+    'Hierbij ontvangt u ' + docType +
+    ' voor ' + (p?.naam || 'het project') + '.\n\n' +
+    'De PDF is als bijlage toegevoegd.\n\n' +
+    'Met vriendelijke groet,\n' +
+    (_settingsCache?.bedrijfsnaam || '');
+  return { email, subject, body };
+}
+
+function shareViaGmail() {
+  const { email, subject, body } = _buildEmailContent();
+  const url = 'https://mail.google.com/mail/?view=cm' +
+    '&to=' + encodeURIComponent(email) +
+    '&su=' + encodeURIComponent(subject) +
+    '&body=' + encodeURIComponent(body);
+  window.open(url, '_blank');
+  showToast('Gmail geopend — voeg de PDF als bijlage toe');
+}
+
+function shareViaOutlook() {
+  const { email, subject, body } = _buildEmailContent();
+  const url = 'https://outlook.live.com/mail/0/deeplink/compose' +
+    '?to=' + encodeURIComponent(email) +
+    '&subject=' + encodeURIComponent(subject) +
+    '&body=' + encodeURIComponent(body);
+  window.open(url, '_blank');
+  showToast('Outlook geopend — voeg de PDF als bijlage toe');
+}
+
+async function shareViaEmail() {
+  const p = AppState.currentProjectData;
+  const filename = window._pendingShareFilename || 'document.pdf';
+
+  // Probeer eerst native Web Share API (werkt op mobiel)
+  if (navigator.share && navigator.canShare && window._pendingSharePdf) {
+    try {
+      const file = new File([window._pendingSharePdf], filename, { type: 'application/pdf' });
+      const shareData = {
+        title: filename.replace('.pdf', ''),
+        text: _pendingShareText,
+        files: [file]
+      };
+      if (navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        showToast('Gedeeld!');
+        return;
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+    }
+  }
+
+  // Fallback: mailto link
+  const { email, subject, body } = _buildEmailContent();
+  const mailto = 'mailto:' + encodeURIComponent(email) +
+    '?subject=' + encodeURIComponent(subject) +
+    '&body=' + encodeURIComponent(body);
+  window.location.href = mailto;
+
+  showToast('Mail geopend — voeg de PDF als bijlage toe');
 }
 
 // ===================================================
@@ -6033,27 +6084,29 @@ async function renderFinancien(p) {
 
   const kmVergoeding = settings.kilometerVergoeding || 0.23;
 
-  const reguliereUrenFin = (p.uren || []).filter(u => !u.meerwerk);
-  const meerwerkUrenFin = (p.uren || []).filter(u => u.meerwerk);
-  const totalUren = reguliereUrenFin.reduce((s, u) => s + (u.uren || 0), 0);
+  // Single-pass uren berekening
+  let totalUren = 0, mwUrenTotal = 0;
+  (p.uren || []).forEach(u => {
+    const uur = u.uren || 0;
+    if (u.meerwerk) mwUrenTotal += uur; else totalUren += uur;
+  });
   const urenOmzet = totalUren * uurtarief;
-  const matKosten = (p.materialen || []).filter(m => !m.meerwerk).reduce((s, m) => {
+
+  // Single-pass materiaalkosten berekening
+  let matKosten = 0, mwMatKosten = 0;
+  (p.materialen || []).forEach(m => {
     const prijs = parseFloat(m.prijs);
     const hoev = parseFloat(m.hoeveelheid) || 1;
-    return s + (prijs > 0 ? prijs * hoev : 0);
-  }, 0);
+    const bedrag = prijs > 0 ? prijs * hoev : 0;
+    if (m.meerwerk) mwMatKosten += bedrag; else matKosten += bedrag;
+  });
+
   const totalKm = (p.ritten || []).reduce((s, r) => s + (parseFloat(r.km) || 0), 0);
   const ritKosten = totalKm * kmVergoeding;
   const totaalExBTW = urenOmzet + matKosten + ritKosten;
 
   // Meerwerk berekeningen
-  const mwUrenTotal = meerwerkUrenFin.reduce((s, u) => s + (u.uren || 0), 0);
   const mwUrenOmzet = mwUrenTotal * uurtarief;
-  const mwMatKosten = (p.materialen || []).filter(m => m.meerwerk).reduce((s, m) => {
-    const prijs = parseFloat(m.prijs);
-    const hoev = parseFloat(m.hoeveelheid) || 1;
-    return s + (prijs > 0 ? prijs * hoev : 0);
-  }, 0);
   const mwTotaal = mwUrenOmzet + mwMatKosten;
   const hasMeerwerkFin = mwTotaal > 0;
   const margePercent = totaalExBTW > 0 ? Math.round(urenOmzet / totaalExBTW * 100) : (urenOmzet > 0 ? 100 : 0);
@@ -6318,31 +6371,29 @@ function onExportDateChange() {
   updateExportPreview();
 }
 
+let _exportPreviewVersion = 0;
 async function updateExportPreview() {
   const previewEl = document.getElementById('export-preview');
   if (!previewEl) return;
   const { van, tot } = getExportDateRange();
   if (!van || !tot) { previewEl.textContent = ''; return; }
   previewEl.textContent = 'Facturen ophalen…';
+  const version = ++_exportPreviewVersion;
   try {
     const invoices = await loadAllInvoicesForExport(van, tot);
+    if (version !== _exportPreviewVersion) return; // stale result, newer request in-flight
     const n = invoices.length;
     const exportBtns = ['export-btn-moneybird', 'export-btn-eboekhouden', 'export-btn-ubl'];
+    const cachedBtns = exportBtns.map(id => document.getElementById(id)).filter(Boolean);
     if (n === 0) {
       previewEl.innerHTML = '<span style="color:var(--orange)">Geen facturen in deze periode</span>';
-      exportBtns.forEach(id => {
-        const b = document.getElementById(id);
-        if (b) { b.disabled = true; b.style.opacity = '0.45'; b.style.cursor = 'not-allowed'; }
-      });
+      cachedBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.45'; b.style.cursor = 'not-allowed'; });
     } else {
       previewEl.textContent = `${n} ${n === 1 ? 'factuur' : 'facturen'} gevonden in deze periode`;
-      exportBtns.forEach(id => {
-        const b = document.getElementById(id);
-        if (b) { b.disabled = false; b.style.opacity = ''; b.style.cursor = ''; }
-      });
+      cachedBtns.forEach(b => { b.disabled = false; b.style.opacity = ''; b.style.cursor = ''; });
     }
   } catch (e) {
-    previewEl.textContent = '';
+    if (version === _exportPreviewVersion) previewEl.textContent = '';
   }
 }
 
@@ -6399,7 +6450,7 @@ function downloadBlob(blob, filename) {
   a.href = url; a.download = filename;
   document.body.appendChild(a);
   a.click();
-  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 10000);
 }
 
 function csvEsc(val) {
@@ -6484,7 +6535,7 @@ function buildUBLInvoice(inv, settings, btwPct) {
 
   const vervalDat = new Date(inv.datum);
   vervalDat.setDate(vervalDat.getDate() + (settings.betalingstermijn || 14));
-  const vervalStr = vervalDat.toISOString().slice(0, 10);
+  const vervalStr = localDateStr(vervalDat);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
@@ -6631,21 +6682,27 @@ async function renderBTWOverzicht() {
   ]);
 
   const kwartalen = [
-    { q: 1, label: 'Q1', sublabel: 'Januari t/m Maart',    start: `${jaar}-01-01`, end: `${jaar}-03-31` },
-    { q: 2, label: 'Q2', sublabel: 'April t/m Juni',        start: `${jaar}-04-01`, end: `${jaar}-06-30` },
-    { q: 3, label: 'Q3', sublabel: 'Juli t/m September',    start: `${jaar}-07-01`, end: `${jaar}-09-30` },
-    { q: 4, label: 'Q4', sublabel: 'Oktober t/m December',  start: `${jaar}-10-01`, end: `${jaar}-12-31` },
+    { q: 1, label: 'Q1', sublabel: 'Januari t/m Maart' },
+    { q: 2, label: 'Q2', sublabel: 'April t/m Juni' },
+    { q: 3, label: 'Q3', sublabel: 'Juli t/m September' },
+    { q: 4, label: 'Q4', sublabel: 'Oktober t/m December' },
   ];
 
+  // Single-pass: bucket facturen en materialen per kwartaal
+  const fPerQ = { 1: [], 2: [], 3: [], 4: [] };
+  (facturen || []).forEach(f => {
+    const maand = parseInt((f.datum || '').slice(5, 7));
+    if (maand >= 1 && maand <= 12) fPerQ[Math.ceil(maand / 3)].push(f);
+  });
+  const mPerQ = { 1: [], 2: [], 3: [], 4: [] };
+  (materialen || []).forEach(m => {
+    const maand = parseInt((m.aangemaakt || '').slice(5, 7));
+    if (maand >= 1 && maand <= 12) mPerQ[Math.ceil(maand / 3)].push(m);
+  });
+
   _btwKwartaalData = kwartalen.map(kw => {
-    const fInKw = (facturen || []).filter(f => {
-      const d = (f.datum || '').slice(0, 10);
-      return d >= kw.start && d <= kw.end;
-    });
-    const mInKw = (materialen || []).filter(m => {
-      const d = (m.aangemaakt || '').slice(0, 10);
-      return d >= kw.start && d <= kw.end;
-    });
+    const fInKw = fPerQ[kw.q];
+    const mInKw = mPerQ[kw.q];
     const totaalExBTW        = fInKw.reduce((s, f) => s + (parseFloat(f.bedrag) || 0), 0);
     const totaalBTWOntvangen = fInKw.reduce((s, f) => s + (parseFloat(f.btw)    || 0), 0);
     const totaalMatKosten    = mInKw.reduce((s, m) => {
@@ -6986,6 +7043,12 @@ document.addEventListener('click', function handleDelegatedClick(e) {
 // ===================================================
 // INIT
 // ===================================================
+
+// Cleanup intervals on page unload to prevent memory leaks
+window.addEventListener('beforeunload', () => {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  stopTimerTick();
+});
 
 document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('keydown', e => {
