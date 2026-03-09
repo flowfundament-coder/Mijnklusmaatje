@@ -49,6 +49,7 @@
       inset: 0;
       bottom: var(--nav-h);
       overflow-y: auto;
+      overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       background: var(--bg);
     }
@@ -387,6 +388,22 @@
     .mic-btn-compact.recording { background: var(--red); animation: pulse 1.2s infinite; will-change: transform, opacity; }
     .mic-btn-compact.processing { background: var(--yellow); animation: spin-fade 1s ease-in-out infinite; }
     .mic-btn-compact svg { width: 20px; height: 20px; }
+    .mic-btn-locked {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: var(--border);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-size: 18px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mic-btn-locked:active { opacity: 0.7; }
     .home-hint {
       font-size: 20px;
       font-weight: 700;
@@ -1083,7 +1100,7 @@
 </div>
 
 <!-- ============ SCREEN: HOME ============ -->
-<div id="screen-home" class="screen">
+<div id="screen-home" class="screen" style="overflow:hidden">
   <div class="header">
     <span class="header-logo">🏗 KlusMaatje</span>
     <div style="flex:1"></div>
@@ -1098,7 +1115,7 @@
   <div class="home-scroll-area" id="home-scroll-area">
 
     <!-- Dagstart content — always visible -->
-    <div id="dagstart-content" style="padding:16px;display:flex;flex-direction:column">
+    <div id="dagstart-content" style="padding:16px;padding-bottom:80px;display:flex;flex-direction:column">
 
       <!-- Begroeting + datum -->
       <div style="margin-bottom:12px">
@@ -1176,7 +1193,7 @@
 </div>
 
 <!-- ============ SCREEN: PROJECT DETAIL ============ -->
-<div id="screen-project-detail" class="screen no-nav">
+<div id="screen-project-detail" class="screen no-nav" style="overflow:hidden">
   <div class="detail-header">
     <div class="detail-header-top">
       <button class="btn-icon" onclick="showScreen('projects')" aria-label="Terug">
@@ -1343,7 +1360,7 @@
 </div>
 
 <!-- ============ SCREEN: SETTINGS ============ -->
-<div id="screen-settings" class="screen">
+<div id="screen-settings" class="screen" style="overflow:hidden">
 
   <!-- Header: overzicht -->
   <div class="header" id="settings-header-overview">
@@ -1537,7 +1554,7 @@
 </div>
 
 <!-- ============ SCREEN: BTW ============ -->
-<div id="screen-btw" class="screen">
+<div id="screen-btw" class="screen" style="overflow:hidden">
   <div class="header">
     <span class="header-title">BTW Overzicht <span id="btw-jaar" style="color:var(--muted);font-weight:500;font-size:15px"></span></span>
     <button class="btn-icon" onclick="toggleBTWExport()" aria-label="Exporteren" title="Facturen exporteren">
@@ -3626,14 +3643,6 @@ function closeModal(e) {
     const overlay = document.getElementById('modal-overlay');
     overlay.classList.remove('open');
 
-    // Reset timer-modal centered styles terug naar bottom-sheet defaults
-    if (window._timerModalOpen) {
-      overlay.style.alignItems = '';
-      overlay.style.justifyContent = '';
-      overlay.style.padding = '';
-      window._timerModalOpen = false;
-    }
-
     window._pendingSharePdf = null;
     window._pendingShareFilename = null;
 
@@ -5249,7 +5258,7 @@ async function renderDagstartScherm() {
     if (_subscriptionCache?.plan === 'trial' && _subscriptionCache.trialDaysLeft > 0) {
       bannerEl.innerHTML = `<div class="trial-banner">
         <span class="trial-banner-text">🎁 Proefperiode — nog ${_subscriptionCache.trialDaysLeft} ${_subscriptionCache.trialDaysLeft === 1 ? 'dag' : 'dagen'}</span>
-        <a class="trial-banner-link" onclick="showPricingModal()">Bekijk pakketten →</a>
+        <button class="trial-banner-link" onclick="showPricingModal()" style="border:none;background:none;padding:0;font-family:inherit">Bekijk pakketten →</button>
       </div>`;
     } else {
       bannerEl.innerHTML = '';
@@ -5536,28 +5545,19 @@ function startTimerVanProject(projectId, projectNaam) {
   const bestaand = getTimerData();
   if (bestaand) { showToast('Stop eerst de huidige timer'); return; }
 
-  // Modal tonen om omschrijving in te vullen
-  const overlay = document.getElementById('modal-overlay');
-
-  // Tijdelijk overlay centred maken i.p.v. bottom-sheet
-  overlay.style.alignItems = 'center';
-  overlay.style.justifyContent = 'center';
-  overlay.style.padding = '24px';
-  window._timerModalOpen = true;
-
-  overlay.innerHTML = `
-    <div class="modal" style="border-radius:16px;max-width:320px;width:100%;padding:24px 20px;animation:none;">
-      <h3 style="margin:0 0 12px 0;font-size:1.1rem;">⏱ Timer starten</h3>
-      <p style="margin:0 0 4px 0;font-size:.85rem;color:#666;">${escHtml(projectNaam)}</p>
-      <label style="font-size:.9rem;font-weight:600;display:block;margin:12px 0 6px;">Wat ga je doen?</label>
-      <input id="timer-start-omschrijving" type="text" placeholder="Bijv. timmeren, schilderen..." style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:1rem;box-sizing:border-box;" autofocus>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:16px;">
-        <button onclick="confirmStartTimer('${projectId}', '${escHtml(projectNaam)}', true)" class="btn btn-primary" style="width:100%;padding:12px;border-radius:8px;font-size:1rem;">Start timer</button>
-        <span onclick="confirmStartTimer('${projectId}', '${escHtml(projectNaam)}', false)" style="color:#888;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:4px 0;">Start zonder omschrijving</span>
-      </div>
+  document.getElementById('modal-title').textContent = 'Timer starten';
+  document.getElementById('modal-body').innerHTML = `
+    <p style="font-size:14px;color:var(--muted);margin-bottom:12px">${escHtml(projectNaam)}</p>
+    <div class="form-group">
+      <label class="form-label">Wat ga je doen?</label>
+      <input class="form-input" id="timer-start-omschrijving" type="text" placeholder="Bijv. timmeren, schilderen..." autofocus>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="confirmStartTimer('${projectId}', '${escHtml(projectNaam)}', true)" style="margin-bottom:8px">Start timer</button>
+    <div style="text-align:center">
+      <span onclick="confirmStartTimer('${projectId}', '${escHtml(projectNaam)}', false)" style="color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline">Start zonder omschrijving</span>
     </div>`;
   openModal();
-  setTimeout(() => { const inp = document.getElementById('timer-start-omschrijving'); if (inp) inp.focus(); }, 100);
+  setTimeout(() => { const inp = document.getElementById('timer-start-omschrijving'); if (inp) inp.focus(); }, 300);
 }
 
 function confirmStartTimer(projectId, projectNaam, metOmschrijving) {
