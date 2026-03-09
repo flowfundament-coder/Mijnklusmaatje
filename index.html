@@ -214,6 +214,102 @@
     .badge-actief { background: var(--green-bg); color: var(--green); }
     .badge-offerte { background: #FFF7ED; color: var(--orange); }
     .badge-afgerond { background: var(--border); color: var(--muted); }
+    .badge-meerwerk { background: #FFF7ED; color: var(--orange); font-size: 11px; padding: 2px 8px; border-radius: 100px; font-weight: 600; }
+    .btn-meerwerk-toggle { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+    .btn-meerwerk-toggle.active { border-color: var(--orange); background: var(--orange); color: #fff; }
+
+    /* === TRIAL BANNER === */
+    .trial-banner {
+      background: var(--orange-light);
+      border: 1px solid var(--orange);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .trial-banner-text { font-size: 13px; font-weight: 600; color: var(--orange-dark); }
+    .trial-banner-link { font-size: 13px; font-weight: 700; color: var(--orange); text-decoration: none; white-space: nowrap; cursor: pointer; }
+
+    /* === EXPIRED OVERLAY === */
+    .expired-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .expired-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      max-width: 360px;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .expired-card h2 { font-size: 20px; color: var(--text); margin-bottom: 8px; }
+    .expired-card p { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+
+    /* === PRICING MODAL === */
+    .pricing-container { display: flex; gap: 12px; flex-direction: column; }
+    @media (min-width: 600px) { .pricing-container { flex-direction: row; } }
+    .pricing-card {
+      flex: 1;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 16px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .pricing-card.popular {
+      border-color: var(--orange);
+      box-shadow: 0 4px 16px rgba(249,115,22,0.15);
+    }
+    .pricing-badge {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--orange);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 100px;
+      white-space: nowrap;
+    }
+    .pricing-name { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+    .pricing-price { font-size: 28px; font-weight: 800; color: var(--orange); margin-bottom: 2px; }
+    .pricing-price span { font-size: 14px; font-weight: 500; color: var(--muted); }
+    .pricing-desc { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+    .pricing-features { list-style: none; padding: 0; margin: 0 0 20px 0; flex: 1; }
+    .pricing-features li { font-size: 13px; padding: 4px 0; display: flex; align-items: center; gap: 8px; }
+    .pricing-features li.included { color: var(--text); }
+    .pricing-features li.excluded { color: var(--muted); opacity: 0.6; }
+
+    /* === LOCKED BUTTON === */
+    .mic-btn-locked {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: var(--border);
+      color: var(--muted);
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
 
     /* === CONTENT AREA === */
     .content { padding: 16px; flex: 1; }
@@ -409,6 +505,17 @@
       transition: border-color 0.15s;
     }
     .project-card:active { border-color: var(--orange); }
+    .project-card-afgerond {
+      background: var(--bg);
+      border-color: var(--border);
+      opacity: 0.7;
+    }
+    .project-card-afgerond .project-name {
+      color: var(--muted);
+    }
+    .project-card-afgerond .project-meta {
+      color: var(--border);
+    }
     .project-card-top {
       display: flex;
       align-items: flex-start;
@@ -891,6 +998,9 @@
       flex: 1; font-size: 15px; font-weight: 700; color: var(--text);
       cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
+    .dagstart-timer-btn .timer-elapsed {
+      font-size: 10px; font-weight: 700; color: var(--red); margin-top: 1px; white-space: nowrap;
+    }
     .dagstart-timer-btn {
       width: 36px; height: 36px; border-radius: 8px; border: none;
       background: var(--orange-light); color: var(--orange);
@@ -899,8 +1009,10 @@
       -webkit-tap-highlight-color: transparent;
     }
     .dagstart-timer-btn:active { opacity: 0.75; }
-    .dagstart-timer-btn.active-timer { background: var(--red-bg); color: var(--red); }
+    .dagstart-timer-btn.active-timer { background: var(--red-bg); color: var(--red); width: auto; min-width: 36px; padding: 4px 8px; flex-direction: column; gap: 1px; }
     .dagstart-timer-btn.disabled { opacity: 0.35; pointer-events: none; }
+    .badge-clickable { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .badge-clickable:active { opacity: 0.7; }
     .dagstart-project-item {
       display: flex; align-items: center; padding: 8px 14px; gap: 10px;
       border-top: 1px solid var(--border); font-size: 14px; color: var(--text);
@@ -943,8 +1055,20 @@
 </head>
 <body>
 
+<!-- ============ SPLASH SCREEN ============ -->
+<div id="splash-screen" style="
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;
+">
+  <div style="font-size:48px">🏗</div>
+  <div style="font-size:20px;font-weight:800;color:var(--orange)">KlusMaatje</div>
+  <div style="font-size:13px;color:var(--muted);margin-top:4px">Laden...</div>
+</div>
+
 <!-- ============ SCREEN: AUTH ============ -->
-<div id="screen-auth" class="screen no-nav active">
+<div id="screen-auth" class="screen no-nav">
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-logo">🏗</div>
@@ -958,6 +1082,7 @@
           <input class="form-input" id="auth-password" type="password" placeholder="Wachtwoord" autocomplete="current-password"
             onkeydown="if(event.key==='Enter')handleSignIn()"></div>
         <button class="btn btn-primary btn-full" id="auth-signin-btn" onclick="handleSignIn()">Inloggen</button>
+        <button class="btn btn-secondary btn-full" onclick="handleDemoLogin()" style="margin-top:8px">Demo Inloggen (zonder account)</button>
         <div class="auth-switch">Nog geen account? <button onclick="showAuthTab('register')">Registreren</button></div>
       </div>
       <div id="auth-register-form" style="display:none">
@@ -987,9 +1112,6 @@
     </button>
   </div>
 
-  <!-- Trial/plan banner -->
-  <div id="trial-banner" style="display:none;align-items:center;gap:8px;padding:10px 16px;background:var(--orange-light);border-bottom:1px solid #FED7AA;flex-shrink:0"></div>
-
   <!-- Scrollable dagstart area -->
   <div class="home-scroll-area" id="home-scroll-area">
 
@@ -1001,6 +1123,9 @@
         <div class="dagstart-greeting" id="dagstart-greeting-text"></div>
         <div class="dagstart-datum" id="dagstart-datum-text"></div>
       </div>
+
+      <!-- Trial banner -->
+      <div id="trial-banner-container"></div>
 
       <!-- Actieve timer kaart -->
       <div id="dagstart-active-timer" style="display:none"></div>
@@ -1190,7 +1315,7 @@
     <!-- Foto's -->
     <div class="tab-content" id="tab-fotos">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span class="form-label" style="margin:0" id="foto-count">0 / 10 foto's</span>
+        <span class="form-label" style="margin:0" id="foto-count">0 / 100 foto's</span>
         <label class="btn btn-primary btn-sm" style="cursor:pointer;margin:0">
           📷 Foto toevoegen
           <input type="file" accept="image/*" capture="environment" id="foto-input" style="display:none" onchange="handlePhotoInput(event)">
@@ -1290,7 +1415,7 @@
     </div>
 
     <!-- Kaart: Documenten -->
-    <div class="project-card" onclick="showSettingsSub('docs')" style="margin-bottom:12px">
+    <div class="project-card" onclick="showSettingsSub('docs')" style="margin-bottom:24px">
       <div style="display:flex;align-items:center;gap:14px">
         <div style="width:44px;height:44px;background:var(--orange-light);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2">
@@ -1306,16 +1431,16 @@
     </div>
 
     <!-- Kaart: Mijn pakket -->
-    <div class="project-card" onclick="showSettingsSub('pakket')" style="margin-bottom:24px">
+    <div class="project-card" onclick="showPricingModal()" id="settings-plan-card" style="margin-bottom:24px">
       <div style="display:flex;align-items:center;gap:14px">
         <div style="width:44px;height:44px;background:var(--orange-light);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2">
-            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
           </svg>
         </div>
         <div style="flex:1;min-width:0">
           <div style="font-size:16px;font-weight:700;color:var(--text)">Mijn pakket</div>
-          <div id="settings-summary-pakket" style="font-size:13px;color:var(--muted);margin-top:2px">Trial, Standaard of All-in</div>
+          <div id="settings-plan-summary" style="font-size:13px;color:var(--muted);margin-top:2px"></div>
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
       </div>
@@ -1423,64 +1548,6 @@
           <label class="form-label">Algemene voorwaarden (onderaan PDF)</label>
           <textarea class="form-input" id="s-voorwaarden" rows="3" placeholder="Bijv. betalings- en leveringsvoorwaarden..." style="resize:vertical;min-height:72px"></textarea>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SUBPAGINA: Mijn pakket -->
-  <div id="settings-sub-pakket" class="settings-sub" style="display:none;overflow-y:auto;flex:1;padding:16px;padding-bottom:48px">
-    <div id="pakket-huidige-plan" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center">
-      <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Huidig pakket</div>
-      <div id="pakket-plan-label" style="font-size:22px;font-weight:800;color:var(--orange)">Laden…</div>
-    </div>
-
-    <!-- Pakket: Gratis trial -->
-    <div class="card" style="margin-bottom:12px;border:2px solid var(--border)">
-      <div class="card-body">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div style="font-size:16px;font-weight:700">Gratis Trial</div>
-          <div style="font-size:16px;font-weight:700;color:var(--muted)">€0</div>
-        </div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ 9 projecten</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Voice AI & typen AI</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Offertes & facturen</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Foto's & leads</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ BTW overzicht</div>
-        <div style="font-size:13px;color:#ccc;margin-bottom:4px">✗ Exports, templates, herinneringen</div>
-        <div style="font-size:12px;color:var(--orange);font-weight:600;margin-top:8px">Geldig voor 5 dagen na registratie</div>
-      </div>
-    </div>
-
-    <!-- Pakket: Standaard -->
-    <div class="card" style="margin-bottom:12px;border:2px solid var(--border)">
-      <div class="card-body">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div style="font-size:16px;font-weight:700">Standaard</div>
-          <div style="font-size:16px;font-weight:700;color:var(--orange)">€25<span style="font-size:13px;font-weight:500;color:var(--muted)">/mnd</span></div>
-        </div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ 999 projecten</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Typen AI</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Offertes & facturen</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Foto's & leads</div>
-        <div style="font-size:13px;color:#ccc;margin-bottom:4px">✗ Voice AI, BTW overzicht, exports, templates</div>
-        <button class="btn btn-secondary btn-full" style="margin-top:12px" onclick="showToast('Binnenkort beschikbaar — neem contact op via info@mijnklusmaatje.nl')">Upgrade naar Standaard — €25/maand</button>
-      </div>
-    </div>
-
-    <!-- Pakket: All-in -->
-    <div class="card" style="margin-bottom:12px;border:2px solid var(--orange)">
-      <div class="card-body">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div style="font-size:16px;font-weight:700">All-in ⭐</div>
-          <div style="font-size:16px;font-weight:700;color:var(--orange)">€49<span style="font-size:13px;font-weight:500;color:var(--muted)">/mnd</span></div>
-        </div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Alles van Standaard</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Voice AI (inspreken)</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ BTW overzicht</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Exports (UBL, Moneybird, e-Boekhouden)</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Templates</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ Betalingsherinneringen</div>
-        <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="showToast('Binnenkort beschikbaar — neem contact op via info@mijnklusmaatje.nl')">Upgrade naar All-in — €49/maand</button>
       </div>
     </div>
   </div>
@@ -1606,6 +1673,35 @@
 <div class="toast" id="toast"></div>
 
 <script>
+/*
+===================================================
+SUPABASE SQL — voer dit uit in de Supabase SQL Editor:
+===================================================
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  plan TEXT NOT NULL DEFAULT 'trial',
+  trial_start TIMESTAMPTZ DEFAULT now(),
+  trial_end TIMESTAMPTZ DEFAULT (now() + interval '7 days'),
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id)
+);
+
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can read own subscription"
+  ON subscriptions FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own subscription"
+  ON subscriptions FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own subscription"
+  ON subscriptions FOR UPDATE USING (auth.uid() = user_id);
+*/
+
 // ===================================================
 // SUPABASE SETUP
 // ===================================================
@@ -1632,6 +1728,307 @@ let _pendingShareText = '';
 let _pendingSharePhone = '';
 let _settingsCache = null;
 let _projectsListCache = null; // for AI findProject
+let _demoMode = false; // true = lokale data, geen Supabase
+let _localProjects = []; // in-memory project store voor demo
+let _localLeads = []; // in-memory leads voor demo
+let _demoDocCounters = { F: 0, O: 0 }; // in-memory document counters voor demo
+let _subscriptionCache = null;
+
+// ===================================================
+// PAKKETDEFINITIES
+// ===================================================
+
+const PLANS = {
+  trial: {
+    naam: 'Probeer Gratis',
+    dagen: 7,
+    maxProjecten: 3,
+    maxFotosPerProject: 20,
+    voiceAI: true,
+    typAI: true,
+    pdfExport: true,
+    leads: true,
+    btwOverzicht: true,
+    boekhoudExport: true,
+    templates: true,
+    betalingsherinneringen: true,
+    meerwerkMarkering: true
+  },
+  basis: {
+    naam: 'Basis',
+    prijs: 14.99,
+    maxProjecten: Infinity,
+    maxFotosPerProject: 20,
+    voiceAI: false,
+    typAI: false,
+    pdfExport: true,
+    leads: false,
+    btwOverzicht: false,
+    boekhoudExport: false,
+    templates: false,
+    betalingsherinneringen: false,
+    meerwerkMarkering: false
+  },
+  pro: {
+    naam: 'Pro',
+    prijs: 49,
+    maxProjecten: Infinity,
+    maxFotosPerProject: 50,
+    voiceAI: true,
+    typAI: true,
+    pdfExport: true,
+    leads: true,
+    btwOverzicht: true,
+    boekhoudExport: true,
+    templates: true,
+    betalingsherinneringen: true,
+    meerwerkMarkering: true
+  }
+};
+
+const EXPIRED_PLAN = {
+  naam: 'Verlopen',
+  maxProjecten: 0,
+  maxFotosPerProject: 0,
+  voiceAI: false,
+  typAI: false,
+  pdfExport: false,
+  leads: false,
+  btwOverzicht: false,
+  boekhoudExport: false,
+  templates: false,
+  betalingsherinneringen: false,
+  meerwerkMarkering: false
+};
+
+// ===================================================
+// SUBSCRIPTION LADEN & CACHEN
+// ===================================================
+
+async function loadSubscription() {
+  if (_demoMode) {
+    _subscriptionCache = { plan: 'trial', trialEnd: new Date(Date.now() + 7 * 86400000).toISOString(), active: true, trialDaysLeft: 7 };
+    return _subscriptionCache;
+  }
+  try {
+    let { data, error } = await sb.from('subscriptions').select('*').eq('user_id', currentUser.id).single();
+    if (error || !data) {
+      const trialEnd = new Date(Date.now() + 7 * 86400000).toISOString();
+      const { data: inserted, error: insertErr } = await sb.from('subscriptions').insert({
+        user_id: currentUser.id,
+        plan: 'trial',
+        trial_end: trialEnd
+      }).select().single();
+      if (insertErr) { console.error('loadSubscription insert error', insertErr); }
+      data = inserted || { plan: 'trial', trial_end: trialEnd, active: true };
+    }
+    const trialDaysLeft = Math.max(0, Math.ceil((new Date(data.trial_end) - new Date()) / 86400000));
+    if (data.plan === 'trial' && trialDaysLeft <= 0) {
+      await sb.from('subscriptions').update({ plan: 'expired', updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
+      data.plan = 'expired';
+    }
+    _subscriptionCache = { plan: data.plan, trialEnd: data.trial_end, trialDaysLeft, active: data.active };
+    return _subscriptionCache;
+  } catch (err) {
+    console.error('loadSubscription error', err);
+    _subscriptionCache = { plan: 'trial', trialEnd: new Date(Date.now() + 7 * 86400000).toISOString(), active: true, trialDaysLeft: 7 };
+    return _subscriptionCache;
+  }
+}
+
+function getCurrentPlan() {
+  if (!_subscriptionCache) return PLANS.trial;
+  if (_subscriptionCache.plan === 'expired') return EXPIRED_PLAN;
+  return PLANS[_subscriptionCache.plan] || PLANS.trial;
+}
+
+function canUseFeature(feature) {
+  const plan = getCurrentPlan();
+  return plan[feature] === true || plan[feature] === Infinity || (typeof plan[feature] === 'number' && plan[feature] > 0);
+}
+
+// ===================================================
+// UPGRADE & PRICING MODALS
+// ===================================================
+
+function showUpgradeModal(feature) {
+  const featureNames = {
+    voice: 'Spraakherkenning & AI',
+    ai: 'AI-assistent',
+    projecten: 'Meer projecten',
+    leads: 'Leads beheren',
+    btw: 'BTW-overzicht',
+    export: 'Boekhoud-export',
+    templates: 'Project-templates',
+    herinneringen: 'Betalingsherinneringen',
+    fotos: 'Meer foto\'s',
+    meerwerk: 'Meerwerk-markering'
+  };
+  const naam = featureNames[feature] || feature;
+  const isExpired = _subscriptionCache?.plan === 'expired';
+  const titel = isExpired ? 'Proefperiode verlopen' : 'Upgrade naar Pro';
+  const tekst = isExpired
+    ? 'Je proefperiode is verlopen. Kies een pakket om verder te gaan.'
+    : `<strong>${naam}</strong> is beschikbaar in het Pro-pakket.`;
+
+  document.getElementById('modal-title').textContent = titel;
+  document.getElementById('modal-body').innerHTML = `
+    <div style="text-align:center;padding:8px 0 16px">
+      <div style="font-size:40px;margin-bottom:12px">${isExpired ? '⏰' : '🔒'}</div>
+      <p style="font-size:15px;color:var(--text);margin-bottom:20px">${tekst}</p>
+      <button class="btn btn-primary btn-full" onclick="closeModal();showPricingModal()" style="margin-bottom:8px">Bekijk pakketten</button>
+      <button class="btn btn-secondary btn-full" onclick="closeModal()">Sluiten</button>
+    </div>`;
+  openModal();
+}
+
+function showPricingModal() {
+  const currentPlan = _subscriptionCache?.plan || 'trial';
+  document.getElementById('modal-title').textContent = 'Kies je pakket';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="pricing-container">
+      <div class="pricing-card">
+        <div class="pricing-name">Basis</div>
+        <div class="pricing-price">&euro;14,99 <span>/maand</span></div>
+        <div class="pricing-desc">Voor de klusser die zijn administratie op orde wil</div>
+        <ul class="pricing-features">
+          <li class="included">&#10003; Onbeperkte projecten</li>
+          <li class="included">&#10003; Taken, uren, materialen, ritten</li>
+          <li class="included">&#10003; Planning-overzicht</li>
+          <li class="included">&#10003; Klantbeheer</li>
+          <li class="included">&#10003; 20 foto's per project</li>
+          <li class="included">&#10003; Offertes & facturen (PDF)</li>
+          <li class="excluded">&#10007; Voice & AI-assistent</li>
+          <li class="excluded">&#10007; Leads-systeem</li>
+          <li class="excluded">&#10007; BTW-overzicht</li>
+          <li class="excluded">&#10007; Boekhoud-export</li>
+        </ul>
+        <button class="btn btn-secondary btn-full" onclick="selectPlan('basis')">${currentPlan === 'basis' ? 'Huidig pakket' : 'Kies Basis'}</button>
+      </div>
+      <div class="pricing-card popular">
+        <div class="pricing-badge">Meest gekozen</div>
+        <div class="pricing-name">Pro</div>
+        <div class="pricing-price">&euro;49 <span>/maand</span></div>
+        <div class="pricing-desc">Spreek het in, KlusMaatje regelt de rest</div>
+        <ul class="pricing-features">
+          <li class="included">&#10003; Alles uit Basis</li>
+          <li class="included">&#10003; Onbeperkt voice & AI-assistent &#11088;</li>
+          <li class="included">&#10003; 50 foto's per project</li>
+          <li class="included">&#10003; Leads-systeem</li>
+          <li class="included">&#10003; BTW-overzicht</li>
+          <li class="included">&#10003; Export naar boekhoudsoftware</li>
+          <li class="included">&#10003; Betalingsherinneringen</li>
+          <li class="included">&#10003; Project-templates</li>
+          <li class="included">&#10003; Meerwerk-markering</li>
+        </ul>
+        <button class="btn btn-primary btn-full" onclick="selectPlan('pro')">${currentPlan === 'pro' ? 'Huidig pakket' : 'Kies Pro'}</button>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:14px">Nog geen betaling — binnenkort beschikbaar</p>`;
+  openModal();
+}
+
+async function selectPlan(plan) {
+  if (_demoMode) {
+    _subscriptionCache = { plan, trialEnd: _subscriptionCache?.trialEnd, trialDaysLeft: _subscriptionCache?.trialDaysLeft || 0, active: true };
+    closeModal();
+    showToast('Betaling wordt binnenkort beschikbaar');
+    if (AppState.currentScreen === 'home') await renderDagstartScherm();
+    updateSubscriptionUI();
+    return;
+  }
+  try {
+    await sb.from('subscriptions').update({ plan, active: true, updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
+    _subscriptionCache.plan = plan;
+    _subscriptionCache.active = true;
+    closeModal();
+    showToast('Betaling wordt binnenkort beschikbaar');
+    removeExpiredOverlay();
+    if (AppState.currentScreen === 'home') await renderDagstartScherm();
+    updateSubscriptionUI();
+  } catch (err) {
+    console.error('selectPlan error', err);
+    showToast('Er ging iets mis');
+  }
+}
+
+function showExpiredOverlay() {
+  if (document.getElementById('expired-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'expired-overlay';
+  overlay.className = 'expired-overlay';
+  overlay.innerHTML = `
+    <div class="expired-card">
+      <h2>Je proefperiode is verlopen</h2>
+      <p>Kies een pakket om verder te gaan met KlusMaatje</p>
+      <button class="btn btn-primary btn-full" onclick="removeExpiredOverlay();showPricingModal()" style="margin-bottom:8px">Bekijk pakketten</button>
+      <button class="btn btn-secondary btn-full" onclick="removeExpiredOverlay();handleSignOut()">Uitloggen</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function removeExpiredOverlay() {
+  document.getElementById('expired-overlay')?.remove();
+}
+
+function updateSubscriptionUI() {
+  const plan = getCurrentPlan();
+  const micBtn = document.getElementById('mic-btn-compact');
+  if (micBtn) {
+    if (!plan.voiceAI) {
+      micBtn.style.display = 'none';
+      let locked = document.getElementById('mic-btn-locked');
+      if (!locked) {
+        locked = document.createElement('button');
+        locked.id = 'mic-btn-locked';
+        locked.className = 'mic-btn-locked';
+        locked.onclick = () => showUpgradeModal('voice');
+        locked.innerHTML = '&#128274;';
+        micBtn.parentNode.insertBefore(locked, micBtn);
+      }
+    } else {
+      micBtn.style.display = '';
+      document.getElementById('mic-btn-locked')?.remove();
+    }
+  }
+  // BTW nav lock
+  const btwNav = document.getElementById('nav-btw');
+  if (btwNav) {
+    const existingLock = btwNav.querySelector('.nav-lock');
+    if (!plan.btwOverzicht) {
+      if (!existingLock) {
+        const lock = document.createElement('span');
+        lock.className = 'nav-lock';
+        lock.style.cssText = 'font-size:10px;position:absolute;top:4px;right:8px';
+        lock.textContent = '🔒';
+        btwNav.style.position = 'relative';
+        btwNav.appendChild(lock);
+      }
+    } else {
+      existingLock?.remove();
+    }
+  }
+}
+
+// ===================================================
+// DEMO LOGIN — frontend-only mode
+// ===================================================
+
+function handleDemoLogin() {
+  _demoMode = true;
+  currentUser = { id: 'demo-user', email: 'demo@bouwbuddy.nl' };
+  _settingsCache = getDefaultSettings();
+  _projectsListCache = [];
+  _localProjects = [];
+  _localLeads = [];
+  _subscriptionCache = { plan: 'trial', trialEnd: new Date(Date.now() + 7 * 86400000).toISOString(), active: true, trialDaysLeft: 7 };
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('bottom-nav').style.display = 'flex';
+  showScreen('home');
+  updateSubscriptionUI();
+  showToast('Demo-modus actief');
+}
 
 // ===================================================
 // AUTH
@@ -1679,102 +2076,26 @@ async function handleSignUp() {
 }
 
 async function handleSignOut() {
-  await sb.auth.signOut();
+  if (!_demoMode) await sb.auth.signOut();
   currentUser = null;
   _settingsCache = null;
   _projectsListCache = null;
+  _subscriptionCache = null;
   AppState.currentProjectData = null;
   AppState.currentProjectId = null;
+  _demoMode = false;
+  _localProjects = [];
+  _localLeads = [];
+  removeExpiredOverlay();
   showAuthScreen();
 }
 
 async function ensureProfile() {
+  if (_demoMode) return;
   try {
     const { data } = await sb.from('profiles').select('id').eq('id', currentUser.id).single();
     if (!data) await sb.from('profiles').insert({ id: currentUser.id });
   } catch (err) { logError('ensureProfile', err); }
-  // Initialize trial if settings row has no trial_start
-  try {
-    const { data: sRow } = await sb.from('settings').select('trial_start, plan').eq('user_id', currentUser.id).single();
-    if (sRow && !sRow.trial_start) {
-      await sb.from('settings').update({ trial_start: new Date().toISOString(), plan: 'trial' }).eq('user_id', currentUser.id);
-      if (_settingsCache) { _settingsCache.plan = 'trial'; _settingsCache.trialStart = new Date().toISOString(); }
-    } else if (!sRow) {
-      // Settings row doesn't exist yet — will be created on first save, trial_start handled then
-    }
-  } catch (err) { logError('ensureProfile:trial', err); }
-}
-
-// ===================================================
-// PLAN & FEATURE GATING
-// ===================================================
-
-function getPlanStatus() {
-  const s = _settingsCache;
-  if (!s) return { plan: 'trial', active: true, dagenOver: 5 };
-  const plan = s.plan || 'trial';
-  if (plan === 'allin') return { plan: 'allin', active: true };
-  if (plan === 'standaard') return { plan: 'standaard', active: true };
-  if (plan === 'trial') {
-    if (!s.trialStart) return { plan: 'trial', active: true, dagenOver: 5 };
-    const start = new Date(s.trialStart);
-    const now = new Date();
-    const diffMs = now - start;
-    const diffDagen = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const dagenOver = Math.max(0, 5 - diffDagen);
-    if (dagenOver > 0) return { plan: 'trial', active: true, dagenOver };
-    return { plan: 'verlopen', active: false };
-  }
-  return { plan: 'verlopen', active: false };
-}
-
-const FEATURE_MATRIX = {
-  max_projecten:     { trial: 9, standaard: 999, allin: 999, verlopen: 9 },
-  voice_ai:          { trial: true, standaard: false, allin: true, verlopen: false },
-  typen_ai:          { trial: true, standaard: true, allin: true, verlopen: false },
-  offertes_facturen: { trial: true, standaard: true, allin: true, verlopen: false },
-  fotos:             { trial: true, standaard: true, allin: true, verlopen: false },
-  leads:             { trial: true, standaard: true, allin: true, verlopen: false },
-  btw_overzicht:     { trial: true, standaard: false, allin: true, verlopen: false },
-  exports:           { trial: false, standaard: false, allin: true, verlopen: false },
-  templates:         { trial: false, standaard: false, allin: true, verlopen: false },
-  herinneringen:     { trial: false, standaard: false, allin: true, verlopen: false },
-};
-
-function checkFeature(feature) {
-  const status = getPlanStatus();
-  const plan = status.active ? status.plan : 'verlopen';
-  const matrix = FEATURE_MATRIX[feature];
-  if (!matrix) return true;
-  return !!matrix[plan];
-}
-
-function showUpgradeModal(vereistPlan = 'allin') {
-  const planNaam = vereistPlan === 'allin' ? 'All-in' : 'Standaard';
-  const featuresStandaard = ['Onbeperkte projecten', 'Offertes & facturen', 'Foto\'s & leads', 'BTW overzicht', 'AI typen'];
-  const featuresAllin = [...featuresStandaard, 'Voice AI (inspreken)', 'Exports (UBL, Moneybird)', 'Templates', 'Betalingsherinneringen'];
-
-  document.getElementById('modal-title').textContent = 'Upgrade naar ' + planNaam;
-  document.getElementById('modal-body').innerHTML = `
-    <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Kies een pakket om KlusMaatje te blijven gebruiken.</p>
-    <div style="border:2px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:16px;font-weight:700">Standaard</span>
-        <span style="font-size:18px;font-weight:800;color:var(--orange)">€25<span style="font-size:13px;font-weight:500;color:var(--muted)">/maand</span></span>
-      </div>
-      ${featuresStandaard.map(f => `<div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ ${f}</div>`).join('')}
-      <button class="btn btn-secondary btn-full" style="margin-top:12px" onclick="showToast('Binnenkort beschikbaar — neem contact op via info@mijnklusmaatje.nl');closeModal()">Standaard — €25/maand</button>
-    </div>
-    <div style="border:2px solid var(--orange);border-radius:12px;padding:16px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:16px;font-weight:700">All-in ⭐</span>
-        <span style="font-size:18px;font-weight:800;color:var(--orange)">€49<span style="font-size:13px;font-weight:500;color:var(--muted)">/maand</span></span>
-      </div>
-      ${featuresAllin.map(f => `<div style="font-size:13px;color:var(--muted);margin-bottom:4px">✓ ${f}</div>`).join('')}
-      <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="showToast('Binnenkort beschikbaar — neem contact op via info@mijnklusmaatje.nl');closeModal()">All-in — €49/maand</button>
-    </div>
-    <button class="btn btn-secondary btn-full" onclick="closeModal()">Sluiten</button>`;
-  openModal();
 }
 
 function showAuthScreen() {
@@ -1852,14 +2173,12 @@ function rowToSettings(r) {
     kilometerVergoeding: parseFloat(r.km_vergoeding) || 0.23,
     offerteGeldigheid: parseInt(r.offerte_geldigheid) || 30,
     betalingstermijn: parseInt(r.betalingstermijn) || 14,
-    introTekst: r.intro_tekst || '', voorwaarden: r.voorwaarden || '',
-    plan: r.plan || 'trial',
-    trialStart: r.trial_start || null
+    introTekst: r.intro_tekst || '', voorwaarden: r.voorwaarden || ''
   };
 }
 
 function settingsToRow(s) {
-  const row = {
+  return {
     bedrijfsnaam: s.bedrijfsnaam, adres: s.adres, postcode: s.postcode, plaats: s.plaats,
     kvk_nummer: s.kvkNummer, btw_nummer: s.btwNummer, bankrekening: s.bankrekening,
     email: s.email, telefoon: s.telefoon,
@@ -1868,13 +2187,11 @@ function settingsToRow(s) {
     offerte_geldigheid: s.offerteGeldigheid, betalingstermijn: s.betalingstermijn,
     intro_tekst: s.introTekst, voorwaarden: s.voorwaarden
   };
-  if (s.plan !== undefined) row.plan = s.plan;
-  if (s.trialStart !== undefined) row.trial_start = s.trialStart;
-  return row;
 }
 
 async function loadSettings() {
   if (_settingsCache) return _settingsCache;
+  if (_demoMode) { _settingsCache = getDefaultSettings(); return _settingsCache; }
   try {
     const { data } = await sb.from('settings').select('*').eq('user_id', currentUser.id).single();
     _settingsCache = data ? rowToSettings(data) : getDefaultSettings();
@@ -1884,6 +2201,7 @@ async function loadSettings() {
 
 async function saveSettings(settings) {
   _settingsCache = settings;
+  if (_demoMode) return;
   await sb.from('settings').upsert({ user_id: currentUser.id, ...settingsToRow(settings) });
 }
 
@@ -1908,6 +2226,10 @@ function rowToProject(row, rel = {}) {
 }
 
 async function loadProjects() {
+  if (_demoMode) {
+    _projectsListCache = _localProjects;
+    return _localProjects;
+  }
   try {
     const { data, error } = await sb.from('projects').select('*, taken(*), notities(*)')
       .eq('user_id', currentUser.id).order('aangemaakt', { ascending: false });
@@ -1922,6 +2244,9 @@ async function loadProjects() {
 
 async function fetchProjectWithData(projectId) {
   console.log('[debug] fetchProjectWithData aangeroepen met projectId:', projectId);
+  if (_demoMode) {
+    return _localProjects.find(p => p.id === projectId) || null;
+  }
   try {
     const { data, error } = await sb.rpc('get_project_with_data', { p_id: projectId });
     console.log('[debug] RPC get_project_with_data resultaat:', { data, error });
@@ -1936,12 +2261,16 @@ async function fetchProjectWithData(projectId) {
 }
 
 async function addProject(naam, klant = {}) {
-  const status = getPlanStatus();
-  const maxP = FEATURE_MATRIX.max_projecten[status.active ? status.plan : 'verlopen'] || 9;
-  const projects = _projectsListCache || await loadProjects();
-  if (projects.length >= maxP) {
-    showToast('Je hebt het maximum aantal projecten bereikt. Upgrade naar Standaard voor meer projecten.');
-    return null;
+  if (_demoMode) {
+    const p = {
+      id: generateUUID(), naam, status: 'actief',
+      aangemaakt: new Date().toISOString(),
+      klant: { naam: klant.naam || '', adres: klant.adres || '', postcode: klant.postcode || '', plaats: klant.plaats || '', telefoon: klant.telefoon || '', email: klant.email || '' },
+      taken: [], materialen: [], uren: [], ritten: [], notities: [], offertes: [], facturen: [], fotos: [], afspraken: []
+    };
+    _localProjects.unshift(p);
+    _projectsListCache = _localProjects;
+    return p;
   }
   const { data, error } = await sb.from('projects').insert({
     user_id: currentUser.id, naam, status: 'actief',
@@ -1955,6 +2284,11 @@ async function addProject(naam, klant = {}) {
 }
 
 async function deleteProject(projectId) {
+  if (_demoMode) {
+    _localProjects = _localProjects.filter(p => p.id !== projectId);
+    _projectsListCache = _localProjects;
+    return;
+  }
   // Fetch storage paths first (best-effort cleanup, vóór DB-delete)
   const { data: fotos } = await sb.from('fotos').select('storage_path').eq('project_id', projectId);
 
@@ -1975,41 +2309,52 @@ async function deleteProject(projectId) {
 // Individual item CRUD (used by UI)
 async function addTaakDB(projectId, taak) {
   const type = taak.type || 'taak';
+  const meerwerk = taak.meerwerk || false;
+  const newItem = { id: generateUUID(), omschrijving: taak.omschrijving, deadline: taak.deadline || null, voltooid: false, type, tijd: taak.tijd || null, meerwerk, aangemaakt: new Date().toISOString() };
+  if (_demoMode) return newItem;
   const { data, error } = await sb.from('taken').insert({
     user_id: currentUser.id, project_id: projectId,
-    omschrijving: taak.omschrijving, deadline: taak.deadline || null, voltooid: false, type, tijd: taak.tijd || null
+    omschrijving: taak.omschrijving, deadline: taak.deadline || null, voltooid: false, type, tijd: taak.tijd || null, meerwerk
   }).select().single();
   if (error) throw error;
   return data;
 }
 async function updateTaakDB(id, updates) {
+  if (_demoMode) return;
   const { error } = await sb.from('taken').update(updates).eq('id', id);
   if (error) throw error;
 }
-async function deleteTaakDB(id) { await sb.from('taken').delete().eq('id', id); }
+async function deleteTaakDB(id) { if (!_demoMode) await sb.from('taken').delete().eq('id', id); }
 
 async function addMateriaalDB(projectId, m) {
+  const meerwerk = m.meerwerk || false;
+  const newItem = { id: generateUUID(), naam: m.naam, hoeveelheid: m.hoeveelheid || null, eenheid: m.eenheid || '', prijs: m.prijs || null, meerwerk, aangemaakt: new Date().toISOString() };
+  if (_demoMode) return newItem;
   const { data, error } = await sb.from('materialen').insert({
     user_id: currentUser.id, project_id: projectId,
     naam: m.naam, hoeveelheid: m.hoeveelheid || null,
-    eenheid: m.eenheid || '', prijs: m.prijs || null
+    eenheid: m.eenheid || '', prijs: m.prijs || null, meerwerk
   }).select().single();
   if (error) throw error;
   return data;
 }
-async function deleteMateriaalDB(id) { await sb.from('materialen').delete().eq('id', id); }
+async function deleteMateriaalDB(id) { if (!_demoMode) await sb.from('materialen').delete().eq('id', id); }
 
 async function addUrenDB(projectId, u) {
+  const meerwerk = u.meerwerk || false;
+  const newItem = { id: generateUUID(), datum: u.datum, uren: u.uren, omschrijving: u.omschrijving || '', meerwerk, aangemaakt: new Date().toISOString() };
+  if (_demoMode) return newItem;
   const { data, error } = await sb.from('uren').insert({
     user_id: currentUser.id, project_id: projectId,
-    datum: u.datum, uren: u.uren, omschrijving: u.omschrijving || ''
+    datum: u.datum, uren: u.uren, omschrijving: u.omschrijving || '', meerwerk
   }).select().single();
   if (error) throw error;
   return data;
 }
-async function deleteUrenDB(id) { await sb.from('uren').delete().eq('id', id); }
+async function deleteUrenDB(id) { if (!_demoMode) await sb.from('uren').delete().eq('id', id); }
 
 async function updateUrenDB(id, updates) {
+  if (_demoMode) return;
   const row = {};
   if (updates.uren !== undefined) row.uren = updates.uren;
   if (updates.datum !== undefined) row.datum = updates.datum;
@@ -2019,6 +2364,8 @@ async function updateUrenDB(id, updates) {
 }
 
 async function addRitDB(projectId, r) {
+  const newItem = { id: generateUUID(), datum: r.datum, km: r.km, omschrijving: r.omschrijving || '', vanuit: r.vanuit || null, bestemming: r.bestemming || null, aangemaakt: new Date().toISOString() };
+  if (_demoMode) return newItem;
   const { data, error } = await sb.from('ritten').insert({
     user_id: currentUser.id, project_id: projectId,
     datum: r.datum, km: r.km, omschrijving: r.omschrijving || '',
@@ -2027,9 +2374,11 @@ async function addRitDB(projectId, r) {
   if (error) throw error;
   return data;
 }
-async function deleteRitDB(id) { await sb.from('ritten').delete().eq('id', id); }
+async function deleteRitDB(id) { if (!_demoMode) await sb.from('ritten').delete().eq('id', id); }
 
 async function addNotitieDB(projectId, n) {
+  const newItem = { id: generateUUID(), tekst: n.tekst, datum: n.datum || null, tijd: n.tijd || null, aangemaakt: new Date().toISOString() };
+  if (_demoMode) return newItem;
   const { data, error } = await sb.from('notities').insert({
     user_id: currentUser.id, project_id: projectId,
     tekst: n.tekst, datum: n.datum || null, tijd: n.tijd || null
@@ -2037,9 +2386,24 @@ async function addNotitieDB(projectId, n) {
   if (error) throw error;
   return data;
 }
-async function deleteNotitieDB(id) { await sb.from('notities').delete().eq('id', id); }
+async function deleteNotitieDB(id) { if (!_demoMode) await sb.from('notities').delete().eq('id', id); }
 
 async function updateProjectFields(projectId, row) {
+  if (_demoMode) {
+    const p = _localProjects.find(p => p.id === projectId);
+    if (p) {
+      if (row.naam !== undefined) p.naam = row.naam;
+      if (row.status !== undefined) p.status = row.status;
+      if (row.klant_naam !== undefined) p.klant.naam = row.klant_naam;
+      if (row.klant_adres !== undefined) p.klant.adres = row.klant_adres;
+      if (row.klant_postcode !== undefined) p.klant.postcode = row.klant_postcode;
+      if (row.klant_plaats !== undefined) p.klant.plaats = row.klant_plaats;
+      if (row.klant_telefoon !== undefined) p.klant.telefoon = row.klant_telefoon;
+      if (row.klant_email !== undefined) p.klant.email = row.klant_email;
+    }
+    _projectsListCache = _localProjects;
+    return;
+  }
   const { error } = await sb.from('projects').update(row).eq('id', projectId);
   if (error) throw error;
   _projectsListCache = null;
@@ -2059,6 +2423,7 @@ function rowToLead(r) {
 }
 
 async function loadLeads() {
+  if (_demoMode) return _localLeads;
   try {
     const { data, error } = await sb.from('leads').select('*')
       .eq('user_id', currentUser.id).order('aangemaakt', { ascending: false });
@@ -2068,7 +2433,11 @@ async function loadLeads() {
 }
 
 async function addLead(data) {
-  if (!checkFeature('leads')) { showUpgradeModal('standaard'); return; }
+  if (_demoMode) {
+    const lead = { id: generateUUID(), naam: data.naam || '', telefoon: data.telefoon || '', email: data.email || '', adres: data.adres || '', notitie: data.notitie || '', bron: data.bron || '', opvolging: data.opvolging || '', opvolgingNotitie: data.opvolgingNotitie || '', aangemaakt: new Date().toISOString(), status: data.status || 'nieuw' };
+    _localLeads.unshift(lead);
+    return lead;
+  }
   const { data: row, error } = await sb.from('leads').insert({
     user_id: currentUser.id, naam: data.naam || '',
     telefoon: data.telefoon || '', email: data.email || '',
@@ -2082,6 +2451,11 @@ async function addLead(data) {
 }
 
 async function updateLead(leadId, updates) {
+  if (_demoMode) {
+    const lead = _localLeads.find(l => l.id === leadId);
+    if (lead) Object.assign(lead, updates);
+    return;
+  }
   const row = {};
   const map = { naam:'naam', telefoon:'telefoon', email:'email', adres:'adres',
     notitie:'notitie', bron:'bron', status:'status',
@@ -2096,10 +2470,15 @@ async function updateLead(leadId, updates) {
 }
 
 async function deleteLead(leadId) {
+  if (_demoMode) {
+    _localLeads = _localLeads.filter(l => l.id !== leadId);
+    return;
+  }
   await sb.from('leads').delete().eq('id', leadId);
 }
 
 async function getLead(leadId) {
+  if (_demoMode) return _localLeads.find(l => l.id === leadId) || null;
   const { data } = await sb.from('leads').select('*').eq('id', leadId).single();
   return data ? rowToLead(data) : null;
 }
@@ -2110,6 +2489,9 @@ async function getLead(leadId) {
 
 async function getNextDocumentNumber(prefix) {
   const jaar = new Date().getFullYear();
+  if (_demoMode) {
+    return prefix + jaar + '-' + String(++_demoDocCounters[prefix]).padStart(3, '0');
+  }
   try {
     const { data: counter } = await sb.from('document_counters')
       .select('teller').eq('user_id', currentUser.id).eq('prefix', prefix).eq('jaar', jaar).single();
@@ -2170,6 +2552,7 @@ async function deleteFotoDB(fotoId, storagePath) {
 // ===================================================
 
 async function loadTemplates() {
+  if (_demoMode) return [];
   try {
     const { data } = await sb.from('templates').select('*, template_taken(*), template_materialen(*)')
       .eq('user_id', currentUser.id);
@@ -2187,6 +2570,7 @@ async function loadTemplates() {
 
 // ===================================================
 // APP STATE — navigatie
+// Volgende batch: user, demoMode, projectsList, settings, recording, chatActive, timerData
 // ===================================================
 const AppState = {
   currentScreen:     'auth',
@@ -2228,6 +2612,14 @@ async function showScreen(name, projectId = null) {
     document.getElementById('settings-header-sub').style.display = 'none';
     document.querySelectorAll('.settings-sub').forEach(el => el.style.display = 'none');
     await loadSettingsForm();
+    // Update plan summary
+    const planSummary = document.getElementById('settings-plan-summary');
+    if (planSummary && _subscriptionCache) {
+      const p = _subscriptionCache.plan;
+      if (p === 'trial') planSummary.textContent = `Proefperiode — nog ${_subscriptionCache.trialDaysLeft} ${_subscriptionCache.trialDaysLeft === 1 ? 'dag' : 'dagen'}`;
+      else if (p === 'expired') planSummary.textContent = 'Proefperiode verlopen';
+      else planSummary.textContent = `${getCurrentPlan().naam} pakket — actief`;
+    }
   } else if (name === 'planning') {
     await renderPlanning();
     switchPlanningTab('today');
@@ -2235,6 +2627,7 @@ async function showScreen(name, projectId = null) {
     hideNotification();
     await renderDagstartScherm();
   } else if (name === 'btw') {
+    if (!getCurrentPlan().btwOverzicht) { showUpgradeModal('btw'); return; }
     document.getElementById('btw-jaar').textContent = new Date().getFullYear();
     const ep = document.getElementById('btw-export-panel');
     if (ep) ep.style.display = 'none';
@@ -2316,8 +2709,6 @@ async function renderProjectsList() {
     ...projects.filter(p => p.status === 'afgerond')
   ];
 
-  const timerData = getTimerData();
-
   const el = document.getElementById('projects-list');
   if (!sorted.length) {
     el.innerHTML = `<div class="empty-state">
@@ -2328,43 +2719,33 @@ async function renderProjectsList() {
     return;
   }
 
-  let timerBarHTML = '';
-  if (timerData) {
-    const ms = Date.now() - timerData.start;
-    const uren = Math.floor(ms / 3600000);
-    const min = Math.floor((ms % 3600000) / 60000);
-    const timerProject = sorted.find(p => p.id === timerData.projectId);
-    const timerNaam = timerProject ? escHtml(timerProject.naam) : 'Onbekend project';
-    timerBarHTML = `<div class="dagstart-active-timer-card" style="margin-bottom:12px">
-      <div class="dagstart-active-timer-info">
-        <div class="dagstart-active-timer-time">⏱ ${uren}u ${min}m</div>
-        <div class="dagstart-active-timer-project">${timerNaam}</div>
-      </div>
-      <button class="btn btn-danger btn-sm" data-action="stop-timer">Stop &amp; registreer</button>
-    </div>`;
-  }
-
-  el.innerHTML = timerBarHTML + sorted.map(p => {
+  el.innerHTML = sorted.map(p => {
     const badge = { actief: 'badge-actief', offerte: 'badge-offerte', afgerond: 'badge-afgerond' }[p.status] || 'badge-afgerond';
     const label = { actief: 'Actief', offerte: 'Offerte', afgerond: 'Afgerond' }[p.status] || p.status;
     const datum = new Date(p.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
-    const timerLooptHier = timerData && timerData.projectId === p.id;
-    const timerLooptElders = timerData && timerData.projectId !== p.id;
-    let timerBtnHTML = '';
-    if (p.status === 'actief') {
-      if (timerLooptHier) {
-        timerBtnHTML = `<button class="dagstart-timer-btn active-timer" data-action="stop-timer" title="Timer stoppen">⏹</button>`;
-      } else if (timerLooptElders) {
-        timerBtnHTML = `<button class="dagstart-timer-btn disabled" title="Stop eerst de andere timer">▶</button>`;
-      } else {
-        timerBtnHTML = `<button class="dagstart-timer-btn" data-action="start-timer" data-id="${p.id}" data-naam="${escHtml(p.naam)}" title="Timer starten">▶</button>`;
-      }
+    const timerData = getTimerData();
+    const timerLoopt = timerData && timerData.projectId === p.id;
+    const timerAnders = timerData && timerData.projectId !== p.id;
+    let timerBtnClass = 'dagstart-timer-btn';
+    let timerBtnData = `data-action="start-timer" data-id="${p.id}" data-naam="${escHtml(p.naam)}"`;
+    let timerBtnIcon = '▶';
+    let timerElapsed = '';
+    if (timerLoopt) {
+      timerBtnClass = 'dagstart-timer-btn active-timer';
+      timerBtnData = 'data-action="stop-timer"';
+      const ms = Date.now() - timerData.start;
+      const u = Math.floor(ms / 3600000);
+      const m = Math.floor((ms % 3600000) / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      timerBtnIcon = `⏹<span class="timer-elapsed">${u}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}</span>`;
+    } else if (timerAnders) {
+      timerBtnClass = 'dagstart-timer-btn disabled';
     }
-    return `<div class="project-card" data-action="open-project" data-id="${p.id}">
+    return `<div class="project-card${p.status === 'afgerond' ? ' project-card-afgerond' : ''}" data-action="open-project" data-id="${p.id}">
       <div class="project-card-top">
-        <div class="project-name" style="flex:1">${escHtml(p.naam)}</div>
-        ${timerBtnHTML}
-        <span class="badge ${badge}">${label}</span>
+        <div class="project-name" style="flex:1">${p.status === 'afgerond' ? '✓ ' : ''}${escHtml(p.naam)}</div>
+        <button class="${timerBtnClass}" ${timerBtnData} title="${timerLoopt ? 'Timer stoppen' : 'Timer starten'}">${timerBtnIcon}</button>
+        <span class="badge ${badge} badge-clickable" data-action="toggle-project-status" data-id="${p.id}">${label}</span>
       </div>
       <div class="project-meta">
         ${p.klant?.naam ? `<span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${escHtml(p.klant.naam)}</span>` : ''}
@@ -2519,9 +2900,10 @@ function renderTaken(p) {
             ${t.voltooid ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
           </button>
           <div class="item-row-info">
-            <div class="item-row-title">${escHtml(t.omschrijving)}</div>
+            <div class="item-row-title">${escHtml(t.omschrijving)}${t.meerwerk ? ' <span class="badge-meerwerk">Meerwerk</span>' : ''}</div>
             ${t.deadline ? `<div class="item-row-sub">Deadline: ${fmtDate(t.deadline)}</div>` : ''}
           </div>
+          <button class="btn-meerwerk-toggle ${t.meerwerk ? 'active' : ''}" onclick="event.stopPropagation();toggleMeerwerk('taken', '${t.id}')" title="Meerwerk">M</button>
           <button class="item-row-action" onclick="deleteItem('taken', '${t.id}')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
@@ -2553,9 +2935,10 @@ function renderMaterialen(p) {
   el.innerHTML = p.materialen.map(m => `
     <div class="item-row">
       <div class="item-row-info">
-        <div class="item-row-title">${escHtml(m.naam)}</div>
+        <div class="item-row-title">${escHtml(m.naam)}${m.meerwerk ? ' <span class="badge-meerwerk">Meerwerk</span>' : ''}</div>
         <div class="item-row-sub">${m.hoeveelheid ? m.hoeveelheid + ' ' + (m.eenheid || '') : ''}${m.prijs ? ' · € ' + m.prijs : ''}</div>
       </div>
+      <button class="btn-meerwerk-toggle ${m.meerwerk ? 'active' : ''}" onclick="event.stopPropagation();toggleMeerwerk('materialen', '${m.id}')" title="Meerwerk">M</button>
       <button class="item-row-action" onclick="deleteItem('materialen', '${m.id}')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
@@ -2571,9 +2954,10 @@ function renderUren(p) {
   el.innerHTML = sorted.map(u => `
     <div class="item-row" style="cursor:pointer" onclick="openEditUren('${u.id}')">
       <div class="item-row-info">
-        <div class="item-row-title">${u.uren} uur${u.omschrijving ? ' — ' + escHtml(u.omschrijving) : ''}</div>
+        <div class="item-row-title">${u.uren} uur${u.omschrijving ? ' — ' + escHtml(u.omschrijving) : ''}${u.meerwerk ? ' <span class="badge-meerwerk">Meerwerk</span>' : ''}</div>
         <div class="item-row-sub">${fmtDate(u.datum)}</div>
       </div>
+      <button class="btn-meerwerk-toggle ${u.meerwerk ? 'active' : ''}" onclick="event.stopPropagation();toggleMeerwerk('uren', '${u.id}')" title="Meerwerk">M</button>
       <button class="item-row-action" onclick="event.stopPropagation();deleteItem('uren', '${u.id}')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
@@ -2643,6 +3027,47 @@ async function renderRitten(p) {
   }).join('');
 }
 
+function renderNotities(p) {
+  const el = document.getElementById('notities-list');
+  if (!p.notities.length) { el.innerHTML = renderEmptyState('Nog geen notities.'); return; }
+
+  const gepland = p.notities
+    .filter(n => n.datum)
+    .sort((a, b) => new Date(a.datum) - new Date(b.datum));
+
+  const ongepland = p.notities
+    .filter(n => !n.datum)
+    .sort((a, b) => new Date(b.aangemaakt || 0) - new Date(a.aangemaakt || 0));
+
+  let html = '';
+  if (gepland.length) {
+    html += '<div class="card-header">Gepland</div>';
+    html += gepland.map(n => renderNotitieRow(n, true)).join('');
+  }
+  if (ongepland.length) {
+    html += '<div class="card-header">Notities</div>';
+    html += ongepland.map(n => renderNotitieRow(n, false)).join('');
+  }
+  el.innerHTML = html;
+}
+
+function renderNotitieRow(n, showDate) {
+  const dateStr = showDate && n.datum
+    ? fmtDate(n.datum) + (n.tijd ? ' om ' + n.tijd : '')
+    : fmtDate(n.aangemaakt || n.datum);
+  return `
+    <div class="item-row">
+      ${showDate ? '<span style="font-size:16px;flex-shrink:0">📅</span>' : ''}
+      <div class="item-row-info">
+        <div class="item-row-title">${escHtml(n.tekst)}</div>
+        <div class="item-row-sub">${dateStr}</div>
+      </div>
+      <button class="item-row-action" onclick="deleteItem('notities','${n.id}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>`;
+}
+
 function loadKlantForm(p) {
   document.getElementById('klant-naam').value = p.klant?.naam || '';
   document.getElementById('klant-adres').value = p.klant?.adres || '';
@@ -2683,6 +3108,25 @@ async function toggleTaak(taakId) {
     await updateTaakDB(taakId, { voltooid: t.voltooid });
     renderTaken(AppState.currentProjectData);
   } catch (err) { logError('toggleTaak', err); t.voltooid = !t.voltooid; showToast('Fout bij bijwerken taak'); }
+}
+
+async function toggleMeerwerk(arrayKey, itemId) {
+  if (!getCurrentPlan().meerwerkMarkering) { showUpgradeModal('meerwerk'); return; }
+  if (!AppState.currentProjectData) return;
+  const arr = AppState.currentProjectData[arrayKey];
+  if (!arr) return;
+  const item = arr.find(i => i.id === itemId);
+  if (!item) return;
+  const newVal = !item.meerwerk;
+  item.meerwerk = newVal;
+  try {
+    if (!_demoMode) {
+      const { error } = await sb.from(arrayKey).update({ meerwerk: newVal }).eq('id', itemId);
+      if (error) throw error;
+    }
+    await switchTab(currentTab);
+    showToast(newVal ? 'Gemarkeerd als meerwerk' : 'Meerwerk verwijderd');
+  } catch (err) { logError('toggleMeerwerk', err); item.meerwerk = !newVal; showToast('Fout bij bijwerken'); }
 }
 
 async function deleteItem(arrayKey, itemId) {
@@ -2728,6 +3172,7 @@ async function renderLeadsList() {
   const listEl  = document.getElementById('leads-list');
   const countEl = document.getElementById('leads-count');
   if (!section || !listEl) return;
+  if (!getCurrentPlan().leads) { section.style.display = 'none'; return; }
 
   const active = leads.filter(l => l.status !== 'verloren');
   if (active.length === 0) {
@@ -2794,7 +3239,7 @@ async function openLeadDetail(leadId) {
 }
 
 function openNewLeadModal() {
-  if (!checkFeature('leads')) { showUpgradeModal('standaard'); return; }
+  if (!getCurrentPlan().leads) { showUpgradeModal('leads'); return; }
   document.getElementById('modal-title').textContent = 'Nieuwe lead';
   document.getElementById('modal-body').innerHTML = `
     <div class="form-group"><label class="form-label">Naam *</label>
@@ -2939,13 +3384,14 @@ async function convertLeadToProject(leadId) {
 
 function openNewItemMenu() {
   document.getElementById('modal-title').textContent = 'Nieuw';
+  const leadsBtn = getCurrentPlan().leads
+    ? `<button class="btn btn-secondary btn-full" onclick="openNewLeadModal()">🔔 Nieuwe lead</button>`
+    : '';
   document.getElementById('modal-body').innerHTML = `
     <button class="btn btn-primary btn-full" onclick="openNewProjectModal()" style="margin-bottom:8px">
       🏗 Nieuw project
     </button>
-    <button class="btn btn-secondary btn-full" onclick="openNewLeadModal()">
-      🔔 Nieuwe lead
-    </button>`;
+    ${leadsBtn}`;
   openModal();
 }
 
@@ -2967,6 +3413,7 @@ async function openNewProjectModal() {
   setTimeout(() => document.getElementById('m-naam')?.focus(), 100);
 
   // Templates op de achtergrond laden en toevoegen als ze beschikbaar zijn
+  if (!getCurrentPlan().templates) return;
   const templates = await loadTemplates();
   if (templates.length > 0) {
     const container = document.getElementById('template-container');
@@ -2984,6 +3431,9 @@ async function submitNewProject() {
   const naam = document.getElementById('m-naam')?.value.trim();
   const klantNaam = document.getElementById('m-klant')?.value.trim();
   if (!naam) { showToast('Vul een projectnaam in'); return; }
+  const allProjects = await loadProjects();
+  const actieveProjecten = allProjects.filter(p => p.status !== 'afgerond').length;
+  if (actieveProjecten >= getCurrentPlan().maxProjecten) { showUpgradeModal('projecten'); return; }
 
   const btn = document.querySelector('#modal-body .btn-primary');
   if (btn) { btn.textContent = 'Bezig...'; btn.disabled = true; }
@@ -3038,10 +3488,7 @@ function parseSlimmeDatum(regelTekst) {
   const vandaag = new Date(); vandaag.setHours(0,0,0,0);
 
   function datumStr(d) {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+    return d.toISOString().slice(0, 10);
   }
 
   function eerstvolgendeWeekdag(dagNr) { // 0=zo,1=ma,...,6=za
@@ -3176,6 +3623,7 @@ function openAddModal(type) {
         <textarea class="form-input" id="m-regels" rows="5" placeholder="Primer aanbrengen&#10;Kozijnen schuren wo&#10;Klant wil RAL 9010 /notitie&#10;Oplevering 29 maart 14:00" autofocus style="resize:none;min-height:120px;line-height:1.5"></textarea>
       </div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Typ één item per regel. Datum wordt automatisch herkend. Typ /notitie voor een notitie.</p>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:14px;cursor:pointer"><input type="checkbox" id="m-meerwerk" style="width:18px;height:18px;accent-color:var(--orange)"> Meerwerk</label>
       <button class="btn btn-primary btn-full" id="m-taak-btn" onclick="submitItem('taak')">Toevoegen</button>`,
 
     materiaal: `
@@ -3189,6 +3637,7 @@ function openAddModal(type) {
       </div>
       <div class="form-group"><label class="form-label">Prijs per eenheid (€, optioneel)</label>
         <input class="form-input" id="m-prijs" type="number" placeholder="12.50" min="0" step="0.01"></div>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:14px;cursor:pointer"><input type="checkbox" id="m-meerwerk" style="width:18px;height:18px;accent-color:var(--orange)"> Meerwerk</label>
       <button class="btn btn-primary btn-full" onclick="submitItem('materiaal')">Materiaal toevoegen</button>`,
 
     uren: `
@@ -3198,6 +3647,7 @@ function openAddModal(type) {
         <input class="form-input" id="m-datum" type="date" value="${todayStr()}"></div>
       <div class="form-group"><label class="form-label">Omschrijving (optioneel)</label>
         <input class="form-input" id="m-omschrijving" type="text" placeholder="Bijv. Schilderwerk woonkamer"></div>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:14px;cursor:pointer"><input type="checkbox" id="m-meerwerk" style="width:18px;height:18px;accent-color:var(--orange)"> Meerwerk</label>
       <button class="btn btn-primary btn-full" onclick="submitItem('uren')">Uren registreren</button>`,
 
     rit: `
@@ -3247,6 +3697,7 @@ function openAddModal(type) {
 async function submitItem(type) {
   if (!AppState.currentProjectId || !AppState.currentProjectData) return;
   try {
+    const meerwerk = document.getElementById('m-meerwerk')?.checked || false;
     if (type === 'taak') {
       const rawTekst = document.getElementById('m-regels')?.value || '';
       const regels = rawTekst.split('\n').map(r => r.trim()).filter(Boolean);
@@ -3254,20 +3705,20 @@ async function submitItem(type) {
       for (const regel of regels) {
         const parsed = parseSlimmeDatum(regel);
         if (!parsed.tekst) continue;
-        const row = await addTaakDB(AppState.currentProjectId, { omschrijving: parsed.tekst, deadline: parsed.deadline, type: parsed.type, tijd: parsed.tijd });
-        AppState.currentProjectData.taken.push({ id: row.id, omschrijving: row.omschrijving, deadline: row.deadline, voltooid: false, type: row.type || parsed.type, tijd: row.tijd || parsed.tijd });
+        const row = await addTaakDB(AppState.currentProjectId, { omschrijving: parsed.tekst, deadline: parsed.deadline, type: parsed.type, tijd: parsed.tijd, meerwerk });
+        AppState.currentProjectData.taken.push({ id: row.id, omschrijving: row.omschrijving, deadline: row.deadline, voltooid: false, type: row.type || parsed.type, tijd: row.tijd || parsed.tijd, meerwerk: row.meerwerk });
       }
     } else if (type === 'materiaal') {
       const naam = document.getElementById('m-naam')?.value.trim();
       if (!naam) { showToast('Vul een naam in'); return; }
       const prijs = parseFloat(document.getElementById('m-prijs')?.value) || null;
-      const row = await addMateriaalDB(AppState.currentProjectId, { naam, hoeveelheid: document.getElementById('m-hoeveelheid')?.value || '', eenheid: document.getElementById('m-eenheid')?.value.trim() || '', prijs });
-      AppState.currentProjectData.materialen.push({ id: row.id, naam: row.naam, hoeveelheid: row.hoeveelheid, eenheid: row.eenheid, prijs: row.prijs });
+      const row = await addMateriaalDB(AppState.currentProjectId, { naam, hoeveelheid: document.getElementById('m-hoeveelheid')?.value || '', eenheid: document.getElementById('m-eenheid')?.value.trim() || '', prijs, meerwerk });
+      AppState.currentProjectData.materialen.push({ id: row.id, naam: row.naam, hoeveelheid: row.hoeveelheid, eenheid: row.eenheid, prijs: row.prijs, meerwerk: row.meerwerk });
     } else if (type === 'uren') {
       const uren = parseFloat(document.getElementById('m-uren')?.value);
       if (!uren || uren <= 0) { showToast('Vul een geldig aantal uren in'); return; }
-      const row = await addUrenDB(AppState.currentProjectId, { datum: document.getElementById('m-datum')?.value || todayStr(), uren, omschrijving: document.getElementById('m-omschrijving')?.value.trim() || '' });
-      AppState.currentProjectData.uren.push({ id: row.id, datum: row.datum, uren: row.uren, omschrijving: row.omschrijving });
+      const row = await addUrenDB(AppState.currentProjectId, { datum: document.getElementById('m-datum')?.value || todayStr(), uren, omschrijving: document.getElementById('m-omschrijving')?.value.trim() || '', meerwerk });
+      AppState.currentProjectData.uren.push({ id: row.id, datum: row.datum, uren: row.uren, omschrijving: row.omschrijving, meerwerk: row.meerwerk });
     } else if (type === 'rit') {
       const km = parseFloat(document.getElementById('m-km')?.value);
       if (!km || km <= 0) { showToast('Vul een geldig aantal km in'); return; }
@@ -3517,7 +3968,20 @@ function renderProjectGroup(card, todayStr, tomorrowStr, mode) {
   if (urgentVandaag) summaryParts.push('⚠ ' + urgentVandaag + ' deadline vandaag');
   else if (urgentMorgen) summaryParts.push('⚠ ' + urgentMorgen + ' deadline morgen');
 
-  const urgenteTaakHTML = '';
+  // Altijd-zichtbare urgente taken (ingeklapt)
+  const urgenteTaakHTML = !isOpen && urgenteTaken.length > 0 ? urgenteTaken.map(t => {
+    const isDeadlineToday = (t.deadline || '').startsWith(todayStr);
+    const badgeHTML = isDeadlineToday
+      ? '<span class="planning-deadline-badge deadline-today">Vandaag</span>'
+      : '<span class="planning-deadline-badge deadline-tomorrow">Morgen</span>';
+    return `<div class="planning-item planning-item-taak">
+      <button class="checkbox-btn" data-action="toggle-taak-planning" data-project-id="${p.id}" data-id="${t.id}"></button>
+      <div class="planning-item-info">
+        <div class="planning-item-title">${escHtml(t.omschrijving)}</div>
+      </div>
+      ${badgeHTML}
+    </div>`;
+  }).join('') : '';
 
   // Volledig uitgeklapt
   const visibleTaken = taken.slice(0, MAX_TAKEN);
@@ -3583,7 +4047,7 @@ function renderProjectGroup(card, todayStr, tomorrowStr, mode) {
         <path d="M9 18l6-6-6-6"/>
       </svg>
     </div>
-    ${isOpen ? (afspraakHTML + taakHTML) : ''}
+    ${!isOpen ? urgenteTaakHTML : (afspraakHTML + taakHTML)}
   </div>`;
 }
 
@@ -3790,7 +4254,6 @@ function pdfAddPageFooters(doc, footerText) {
 }
 
 async function generateOfferte(force = false) {
-  if (!checkFeature('offertes_facturen')) { showUpgradeModal('standaard'); return; }
   const p = AppState.currentProjectData;
   if (!p) return;
   const settings = await loadSettings();
@@ -3846,10 +4309,18 @@ async function generateOfferte(force = false) {
   const uurtarief = settings.standaardUurtarief || 45;
   let ri = 0;
 
-  // Uren
-  const totalUren = (p.uren || []).reduce((s, u) => s + (u.uren || 0), 0);
-  if (totalUren > 0) {
-    const bedrag = totalUren * uurtarief;
+  // Split uren en materialen in regulier en meerwerk
+  const reguliereUrenOff = (p.uren || []).filter(u => !u.meerwerk);
+  const meerwerkUrenOff = (p.uren || []).filter(u => u.meerwerk);
+  const reguliereMatOff = (p.materialen || []).filter(m => !m.meerwerk);
+  const meerwerkMatOff = (p.materialen || []).filter(m => m.meerwerk);
+  const hasMeerwerkOff = meerwerkUrenOff.length > 0 || meerwerkMatOff.length > 0;
+
+  // Helper voor offerte uren-regel
+  function renderOfferteUren(urenArr) {
+    const totalU = urenArr.reduce((s, u) => s + (u.uren || 0), 0);
+    if (totalU <= 0) return;
+    const bedrag = totalU * uurtarief;
     subtotaal += bedrag;
     y = pdfNewPageIfNeeded(doc, y, 6.5);
     doc.setFillColor(255, 255, 255);
@@ -3858,7 +4329,7 @@ async function generateOfferte(force = false) {
     doc.setFontSize(9);
     doc.setTextColor(...navy);
     doc.text('Arbeidskosten', lm + 3, y + 4.3);
-    doc.text(totalUren + ' uur', 118, y + 4.3);
+    doc.text(totalU + ' uur', 118, y + 4.3);
     doc.text('€ ' + fmtEuro(uurtarief), 140, y + 4.3);
     doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
     y += 6.5;
@@ -3868,33 +4339,58 @@ async function generateOfferte(force = false) {
     ri++;
   }
 
-  // Materialen (alle, prijs n.t.b. als niet ingevuld)
-  (p.materialen || []).forEach(m => {
-    const prijs  = parseFloat(m.prijs) || 0;
-    const hoev   = parseFloat(m.hoeveelheid) || (prijs > 0 ? 1 : 0);
-    const bedrag = prijs * hoev;
-    if (prijs > 0) subtotaal += bedrag;
-    y = pdfNewPageIfNeeded(doc, y, 6.5);
-    doc.setFillColor(ri % 2 === 0 ? 253 : 255, ri % 2 === 0 ? 248 : 255, ri % 2 === 0 ? 244 : 255);
-    doc.rect(lm, y, 170, 6.5, 'F');
-    doc.setFont('helvetica', 'normal');
+  // Helper voor offerte materialen
+  function renderOfferteMat(matArr) {
+    matArr.forEach(m => {
+      const prijs  = parseFloat(m.prijs) || 0;
+      const hoev   = parseFloat(m.hoeveelheid) || (prijs > 0 ? 1 : 0);
+      const bedrag = prijs * hoev;
+      if (prijs > 0) subtotaal += bedrag;
+      y = pdfNewPageIfNeeded(doc, y, 6.5);
+      doc.setFillColor(ri % 2 === 0 ? 253 : 255, ri % 2 === 0 ? 248 : 255, ri % 2 === 0 ? 244 : 255);
+      doc.rect(lm, y, 170, 6.5, 'F');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(...navy);
+      doc.text((m.naam.length > 38 ? m.naam.substring(0, 36) + '...' : m.naam), lm + 3, y + 4.3);
+      if (m.hoeveelheid) doc.text(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : ''), 118, y + 4.3);
+      if (prijs > 0) {
+        doc.text('€ ' + fmtEuro(prijs), 140, y + 4.3);
+        doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
+      } else {
+        doc.setTextColor(...muted);
+        doc.text('n.t.b.', 140, y + 4.3);
+        doc.text('n.t.b.', 163, y + 4.3, { align: 'right' });
+      }
+      y += 6.5;
+      doc.setDrawColor(...light);
+      doc.line(lm, y, rm, y);
+      ri++;
+    });
+  }
+
+  // Reguliere uren
+  renderOfferteUren(reguliereUrenOff);
+
+  // Reguliere materialen
+  renderOfferteMat(reguliereMatOff);
+
+  // === MEERWERK BLOK ===
+  if (hasMeerwerkOff) {
+    y += 4;
+    y = pdfNewPageIfNeeded(doc, y, 12);
+    doc.setFillColor(249, 115, 22);
+    doc.rect(lm, y, 170, 7, 'F');
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.setTextColor(...navy);
-    doc.text((m.naam.length > 38 ? m.naam.substring(0, 36) + '...' : m.naam), lm + 3, y + 4.3);
-    if (m.hoeveelheid) doc.text(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : ''), 118, y + 4.3);
-    if (prijs > 0) {
-      doc.text('€ ' + fmtEuro(prijs), 140, y + 4.3);
-      doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
-    } else {
-      doc.setTextColor(...muted);
-      doc.text('n.t.b.', 140, y + 4.3);
-      doc.text('n.t.b.', 163, y + 4.3, { align: 'right' });
-    }
-    y += 6.5;
-    doc.setDrawColor(...light);
-    doc.line(lm, y, rm, y);
-    ri++;
-  });
+    doc.setTextColor(255, 255, 255);
+    doc.text('MEERWERK', lm + 3, y + 4.8);
+    y += 7;
+    ri = 0;
+
+    renderOfferteUren(meerwerkUrenOff);
+    renderOfferteMat(meerwerkMatOff);
+  }
 
   y = pdfNewPageIfNeeded(doc, y, 30);
   const btwPct = settings.btwPercentage || 21;
@@ -3955,7 +4451,6 @@ async function generateOfferte(force = false) {
 }
 
 async function generateFactuur(force = false) {
-  if (!checkFeature('offertes_facturen')) { showUpgradeModal('standaard'); return; }
   const p = AppState.currentProjectData;
   if (!p) return;
   const settings = await loadSettings();
@@ -4011,34 +4506,42 @@ async function generateFactuur(force = false) {
   const uurtarief = settings.standaardUurtarief || 45;
   let ri = 0;
 
-  // Urenregels
-  const sortedUren = [...(p.uren || [])].sort((a, b) => new Date(a.datum) - new Date(b.datum));
-  sortedUren.forEach(u => {
-    const bedrag = (u.uren || 0) * uurtarief;
-    subtotaal += bedrag;
-    y = pdfNewPageIfNeeded(doc, y, 6.5);
-    doc.setFillColor(ri % 2 === 0 ? 249 : 255, ri % 2 === 0 ? 250 : 255, ri % 2 === 0 ? 251 : 255);
-    doc.rect(lm, y, 170, 6.5, 'F');
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...navy);
-    const omschr = (u.omschrijving || 'Arbeidskosten').substring(0, 32);
-    doc.text(omschr, lm + 3, y + 4.3);
-    doc.setTextColor(...muted);
-    doc.text(new Date(u.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }), 100, y + 4.3);
-    doc.setTextColor(...navy);
-    doc.text(u.uren + ' uur × € ' + fmtEuro(uurtarief), 126, y + 4.3);
-    doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
-    y += 6.5;
-    doc.setDrawColor(...light);
-    doc.setLineWidth(0.2);
-    doc.line(lm, y, rm, y);
-    ri++;
-  });
+  // Split uren en materialen in regulier en meerwerk
+  const reguliereUren = [...(p.uren || [])].filter(u => !u.meerwerk).sort((a, b) => new Date(a.datum) - new Date(b.datum));
+  const meerwerkUren = [...(p.uren || [])].filter(u => u.meerwerk).sort((a, b) => new Date(a.datum) - new Date(b.datum));
+  const reguliereMat = (p.materialen || []).filter(m => !m.meerwerk && parseFloat(m.prijs) > 0);
+  const meerwerkMat = (p.materialen || []).filter(m => m.meerwerk && parseFloat(m.prijs) > 0);
+  const hasMeerwerk = meerwerkUren.length > 0 || meerwerkMat.length > 0;
 
-  // Materialen met prijs
-  const matMetPrijs = (p.materialen || []).filter(m => parseFloat(m.prijs) > 0);
-  if (matMetPrijs.length > 0) {
+  // Helper om urenregels te renderen
+  function renderFactuurUren(urenArr) {
+    urenArr.forEach(u => {
+      const bedrag = (u.uren || 0) * uurtarief;
+      subtotaal += bedrag;
+      y = pdfNewPageIfNeeded(doc, y, 6.5);
+      doc.setFillColor(ri % 2 === 0 ? 249 : 255, ri % 2 === 0 ? 250 : 255, ri % 2 === 0 ? 251 : 255);
+      doc.rect(lm, y, 170, 6.5, 'F');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(...navy);
+      const omschr = (u.omschrijving || 'Arbeidskosten').substring(0, 32);
+      doc.text(omschr, lm + 3, y + 4.3);
+      doc.setTextColor(...muted);
+      doc.text(new Date(u.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }), 100, y + 4.3);
+      doc.setTextColor(...navy);
+      doc.text(u.uren + ' uur × € ' + fmtEuro(uurtarief), 126, y + 4.3);
+      doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
+      y += 6.5;
+      doc.setDrawColor(...light);
+      doc.setLineWidth(0.2);
+      doc.line(lm, y, rm, y);
+      ri++;
+    });
+  }
+
+  // Helper om materiaalregels te renderen
+  function renderFactuurMat(matArr) {
+    if (matArr.length === 0) return;
     y = pdfNewPageIfNeeded(doc, y, 5.5);
     doc.setFillColor(245, 247, 250);
     doc.rect(lm, y, 170, 5.5, 'F');
@@ -4048,8 +4551,7 @@ async function generateFactuur(force = false) {
     doc.text('MATERIALEN', lm + 3, y + 3.8);
     y += 5.5;
     ri = 0;
-
-    matMetPrijs.forEach(m => {
+    matArr.forEach(m => {
       const prijs  = parseFloat(m.prijs);
       const hoev   = parseFloat(m.hoeveelheid) || 1;
       const bedrag = prijs * hoev;
@@ -4071,6 +4573,12 @@ async function generateFactuur(force = false) {
       ri++;
     });
   }
+
+  // Reguliere urenregels
+  renderFactuurUren(reguliereUren);
+
+  // Reguliere materialen met prijs
+  renderFactuurMat(reguliereMat);
 
   // Reiskosten
   const kmVergoeding = settings.kilometerVergoeding || 0.23;
@@ -4113,6 +4621,27 @@ async function generateFactuur(force = false) {
       doc.line(lm, y, rm, y);
       ri++;
     });
+  }
+
+  // === MEERWERK BLOK ===
+  if (hasMeerwerk) {
+    y += 4;
+    y = pdfNewPageIfNeeded(doc, y, 12);
+    // Oranje meerwerk header
+    doc.setFillColor(249, 115, 22);
+    doc.rect(lm, y, 170, 7, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    doc.text('MEERWERK', lm + 3, y + 4.8);
+    y += 7;
+    ri = 0;
+
+    // Meerwerk uren
+    renderFactuurUren(meerwerkUren);
+
+    // Meerwerk materialen
+    renderFactuurMat(meerwerkMat);
   }
 
   y = pdfNewPageIfNeeded(doc, y, 30);
@@ -4183,10 +4712,7 @@ let audioChunks = [];
 let audioStream = null;
 
 async function toggleRecording() {
-  if (!checkFeature('voice_ai')) {
-    showToast('Voice-invoer is beschikbaar in het All-in pakket');
-    return;
-  }
+  if (!getCurrentPlan().voiceAI) { showUpgradeModal('voice'); return; }
   if (isRecording) {
     stopRecording();
   } else {
@@ -4398,9 +4924,9 @@ JOUW TAKEN:
 
 BESCHIKBARE ACTIES:
 - nieuw_project: {naam, klant: {naam?}}
-- voeg_taak_toe: {project_id, omschrijving, deadline?, type?: 'taak'|'notitie', tijd?}
-- voeg_materiaal_toe: {project_id, naam?, hoeveelheid?, eenheid?, prijs?} OF {project_id, items: [{naam, hoeveelheid?, eenheid?, prijs?}]}
-- registreer_uren: {project_id, uren, datum?, omschrijving?}
+- voeg_taak_toe: {project_id, omschrijving, deadline?, type?: 'taak'|'notitie', tijd?, meerwerk?: boolean}
+- voeg_materiaal_toe: {project_id, naam?, hoeveelheid?, eenheid?, prijs?, meerwerk?: boolean} OF {project_id, items: [{naam, hoeveelheid?, eenheid?, prijs?, meerwerk?: boolean}]}
+- registreer_uren: {project_id, uren, datum?, omschrijving?, meerwerk?: boolean}
 - registreer_rit: {project_id, km, omschrijving?, datum?, vanuit?, bestemming?}
 - update_klant: {project_id, veld, waarde}
 - genereer_offerte: {project_id}
@@ -4440,6 +4966,7 @@ Regels:
 - Als iemand iets zegt met een datum/tijd erin (bijv. "dinsdag 14:00 oplevering"), gebruik voeg_taak_toe met type='notitie', deadline en tijd
 - Als iemand iets zegt zonder datum maar het is een notitie (bijv. "klant wil RAL 9010"), gebruik voeg_taak_toe met type='notitie' en geen deadline
 - Herken zinnen als "gereden naar [bestemming]", "[X] km gereden" of "rit naar [project]" als registreer_rit actie
+- Woorden als "meerwerk", "extra werk", "buiten offerte", "bijkomend", "aanvullend werk", "extra kosten" betekenen meerwerk: true bij de betreffende actie
 - Gebruik NOOIT voeg_afspraak_toe of voeg_notitie_toe — gebruik altijd voeg_taak_toe met het juiste type
 - Bij gecombineerde zinnen: splits ALTIJD in meerdere losse acties. Eén zin kan 2-6 acties bevatten.
 - Gebruik de omschrijving van het werk ("kozijnen geplaatst") als omschrijving bij registreer_uren
@@ -4568,9 +5095,9 @@ async function interpretWithClaude(transcript) {
   }
 }
 
-async function findProject(idOrNaam) {
+function findProject(idOrNaam) {
   if (!idOrNaam) return null;
-  const projects = _projectsListCache || await loadProjects();
+  const projects = _projectsListCache || [];
   let p = projects.find(p => p.id === idOrNaam);
   if (p) return p;
   const q = String(idOrNaam).toLowerCase();
@@ -4596,6 +5123,9 @@ async function executeAction(actie, parameters) {
       case 'nieuw_project': {
         const naam = parameters?.naam;
         if (!naam) { showToast('Geen projectnaam opgegeven'); return; }
+        const _allProj = await loadProjects();
+        const _actief = _allProj.filter(p => p.status !== 'afgerond').length;
+        if (_actief >= getCurrentPlan().maxProjecten) { showUpgradeModal('projecten'); return; }
         const klantRaw = parameters?.klant;
         const klant = typeof klantRaw === 'string' ? { naam: klantRaw } : (klantRaw || {});
         await addProject(naam, klant);
@@ -4605,12 +5135,12 @@ async function executeAction(actie, parameters) {
       }
 
       case 'voeg_taak_toe': {
-        const p = await findProject(parameters?.project_id);
+        const p = findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const itemType = parameters.type === 'notitie' ? 'notitie' : 'taak';
-        const row = await addTaakDB(p.id, { omschrijving: parameters.omschrijving || '', deadline: parameters.deadline || null, type: itemType, tijd: parameters.tijd || null });
+        const row = await addTaakDB(p.id, { omschrijving: parameters.omschrijving || '', deadline: parameters.deadline || null, type: itemType, tijd: parameters.tijd || null, meerwerk: parameters.meerwerk || false });
         if (AppState.currentScreen === 'project-detail' && AppState.currentProjectId === p.id && AppState.currentProjectData) {
-          AppState.currentProjectData.taken.push({ id: row.id, omschrijving: row.omschrijving, deadline: row.deadline, voltooid: false, type: itemType, tijd: row.tijd || null });
+          AppState.currentProjectData.taken.push({ id: row.id, omschrijving: row.omschrijving, deadline: row.deadline, voltooid: false, type: itemType, tijd: row.tijd || null, meerwerk: row.meerwerk });
           if (currentTab === 'taken') renderTaken(AppState.currentProjectData);
         }
         if (parameters.deadline && AppState.currentScreen === 'planning') await renderPlanning();
@@ -4619,14 +5149,14 @@ async function executeAction(actie, parameters) {
       }
 
       case 'voeg_materiaal_toe': {
-        const p = await findProject(parameters?.project_id);
+        const p = findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const items = parameters?.items || [{ naam: parameters?.naam, hoeveelheid: parameters?.hoeveelheid, eenheid: parameters?.eenheid, prijs: parameters?.prijs }];
         for (const m of items) {
           if (!m?.naam) continue;
-          const row = await addMateriaalDB(p.id, { naam: m.naam, hoeveelheid: m.hoeveelheid || '', eenheid: m.eenheid || '', prijs: m.prijs || null });
+          const row = await addMateriaalDB(p.id, { naam: m.naam, hoeveelheid: m.hoeveelheid || '', eenheid: m.eenheid || '', prijs: m.prijs || null, meerwerk: m.meerwerk || parameters.meerwerk || false });
           if (AppState.currentScreen === 'project-detail' && AppState.currentProjectId === p.id && AppState.currentProjectData) {
-            AppState.currentProjectData.materialen.push({ id: row.id, naam: row.naam, hoeveelheid: row.hoeveelheid, eenheid: row.eenheid, prijs: row.prijs });
+            AppState.currentProjectData.materialen.push({ id: row.id, naam: row.naam, hoeveelheid: row.hoeveelheid, eenheid: row.eenheid, prijs: row.prijs, meerwerk: row.meerwerk });
           }
         }
         if (AppState.currentScreen === 'project-detail' && AppState.currentProjectId === p.id && AppState.currentProjectData && currentTab === 'materialen') renderMaterialen(AppState.currentProjectData);
@@ -4635,13 +5165,13 @@ async function executeAction(actie, parameters) {
       }
 
       case 'registreer_uren': {
-        const p = await findProject(parameters?.project_id);
+        const p = findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const uren = parseFloat(parameters?.uren);
         if (!uren || uren <= 0) { showToast('Ongeldig aantal uren'); return; }
-        const row = await addUrenDB(p.id, { datum: parameters.datum || todayStr(), uren, omschrijving: parameters.omschrijving || '' });
+        const row = await addUrenDB(p.id, { datum: parameters.datum || todayStr(), uren, omschrijving: parameters.omschrijving || '', meerwerk: parameters.meerwerk || false });
         if (AppState.currentScreen === 'project-detail' && AppState.currentProjectId === p.id && AppState.currentProjectData) {
-          AppState.currentProjectData.uren.push({ id: row.id, datum: row.datum, uren: row.uren, omschrijving: row.omschrijving });
+          AppState.currentProjectData.uren.push({ id: row.id, datum: row.datum, uren: row.uren, omschrijving: row.omschrijving, meerwerk: row.meerwerk });
           if (currentTab === 'uren') renderUren(AppState.currentProjectData);
         }
         showToast(uren + ' uur geregistreerd');
@@ -4649,7 +5179,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'registreer_rit': {
-        const p = await findProject(parameters?.project_id);
+        const p = findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const km = parseFloat(parameters?.km);
         if (!km || km <= 0) { showToast('Ongeldig aantal km'); return; }
@@ -4664,7 +5194,7 @@ async function executeAction(actie, parameters) {
 
       case 'voeg_notitie_toe': {
         // Legacy: doorsturen naar taken tabel met type='notitie'
-        const p = await findProject(parameters?.project_id);
+        const p = findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const tekst = parameters.tekst || parameters.omschrijving || '';
         const row = await addTaakDB(p.id, { omschrijving: tekst, deadline: parameters.datum || null, type: 'notitie', tijd: parameters.tijd || null });
@@ -4678,7 +5208,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'update_klant': {
-        const p = await findProject(parameters?.project_id);
+        const p = findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         if (parameters?.veld && parameters?.waarde !== undefined) {
           const colMap = { naam:'klant_naam', adres:'klant_adres', postcode:'klant_postcode', plaats:'klant_plaats', telefoon:'klant_telefoon', email:'klant_email' };
@@ -4697,7 +5227,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'genereer_offerte': {
-        const p = await findProject(parameters?.project_id);
+        const p = findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         await showScreen('project-detail', p.id);
         setTimeout(() => generateOfferte(), 500);
@@ -4705,7 +5235,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'genereer_factuur': {
-        const p = await findProject(parameters?.project_id);
+        const p = findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         await showScreen('project-detail', p.id);
         setTimeout(() => generateFactuur(), 500);
@@ -4721,7 +5251,7 @@ async function executeAction(actie, parameters) {
 
       case 'toon_uren': {
         if (parameters?.project_id) {
-          const p = await findProject(parameters.project_id);
+          const p = findProject(parameters.project_id);
           if (p) { await showScreen('project-detail', p.id); setTimeout(() => switchTab('uren'), 100); }
         }
         break;
@@ -4776,15 +5306,11 @@ function logError(context, error) {
 }
 
 function escHtml(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function todayStr() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  return new Date().toISOString().slice(0, 10);
 }
 
 function fmtDate(iso) {
@@ -4824,6 +5350,19 @@ async function renderDagstartScherm() {
   if (greetEl) greetEl.textContent = greeting;
   if (datumEl) datumEl.textContent = datumTekst;
 
+  // Trial banner
+  const bannerEl = document.getElementById('trial-banner-container');
+  if (bannerEl) {
+    if (_subscriptionCache?.plan === 'trial' && _subscriptionCache.trialDaysLeft > 0) {
+      bannerEl.innerHTML = `<div class="trial-banner">
+        <span class="trial-banner-text">🎁 Proefperiode — nog ${_subscriptionCache.trialDaysLeft} ${_subscriptionCache.trialDaysLeft === 1 ? 'dag' : 'dagen'}</span>
+        <a class="trial-banner-link" onclick="showPricingModal()">Bekijk pakketten →</a>
+      </div>`;
+    } else {
+      bannerEl.innerHTML = '';
+    }
+  }
+
   // Timer kaart renderen
   renderDagstartTimerCard();
 
@@ -4860,7 +5399,7 @@ async function renderDagstartScherm() {
     const maandagStr = maandag.toISOString().slice(0,10);
     const zondagStr = zondag.toISOString().slice(0,10);
 
-    if (currentUser) {
+    if (!_demoMode && currentUser) {
       const [{ data: urenData }, { data: facturenData }] = await Promise.all([
         sb.from('uren').select('uren').eq('user_id', currentUser.id)
           .gte('datum', maandagStr).lte('datum', zondagStr),
@@ -4870,26 +5409,22 @@ async function renderDagstartScherm() {
       weekBedrag = weekUren * (settings.standaardUurtarief || 45);
       openFacturenAantal = (facturenData || []).length;
       openFacturenBedrag = (facturenData || []).reduce((s, r) => s + (parseFloat(r.totaal || r.bedrag) || 0), 0);
+    } else {
+      // Demo: bereken uit lokale projecten
+      (_projectsListCache || []).forEach(p => {
+        (p.uren || []).forEach(u => {
+          if (u.datum >= maandagStr && u.datum <= zondagStr) weekUren += parseFloat(u.uren) || 0;
+        });
+        (p.facturen || []).forEach(f => {
+          if (f.status === 'open') { openFacturenAantal++; openFacturenBedrag += parseFloat(f.totaal || f.bedrag) || 0; }
+        });
+      });
+      weekBedrag = weekUren * (settings.standaardUurtarief || 45);
     }
   } catch(e) { logError('renderDagstartScherm:weekdata', e); }
 
   const mainEl = document.getElementById('dagstart-main-content');
   if (!mainEl) return;
-
-  // Trial/plan banner
-  const planStatus = getPlanStatus();
-  const bannerEl = document.getElementById('trial-banner');
-  if (bannerEl) {
-    if (planStatus.plan === 'trial' && planStatus.active) {
-      bannerEl.style.display = 'flex';
-      bannerEl.innerHTML = `<span style="font-size:15px;flex-shrink:0">⏳</span><span style="flex:1;color:var(--orange-dark);font-weight:600;font-size:13px">Je trial loopt nog ${planStatus.dagenOver} ${planStatus.dagenOver === 1 ? 'dag' : 'dagen'} — probeer alles gratis uit!</span>`;
-    } else if (!planStatus.active) {
-      bannerEl.style.display = 'flex';
-      bannerEl.innerHTML = `<span style="font-size:15px;flex-shrink:0">⚠️</span><span style="flex:1;color:var(--red);font-weight:600;font-size:13px">Je trial is verlopen. Upgrade om KlusMaatje te blijven gebruiken.</span><button class="btn btn-sm btn-primary" style="flex-shrink:0;margin-left:8px" onclick="showUpgradeModal('standaard')">Bekijk pakketten</button>`;
-    } else {
-      bannerEl.style.display = 'none';
-    }
-  }
 
   let html = '';
 
@@ -4946,25 +5481,149 @@ async function renderDagstartScherm() {
   mainEl.innerHTML = html;
 }
 
+function renderDagstartProjectCard(p, todayStr, tomorrowStr, timerData) {
+  const timerLooptVoorDit = timerData && timerData.projectId === p.id;
+  const timerLooptAnders = timerData && timerData.projectId !== p.id;
+
+  let timerBtnClass = 'dagstart-timer-btn';
+  let timerBtnAction = `data-action="start-timer" data-id="${p.id}" data-naam="${escHtml(p.naam)}"`;
+  let timerBtnIcon = '▶';
+
+  if (timerLooptVoorDit) {
+    timerBtnClass = 'dagstart-timer-btn active-timer';
+    timerBtnAction = 'data-action="stop-timer"';
+    const ms = Date.now() - timerData.start;
+    const u = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    timerBtnIcon = `⏹<span class="timer-elapsed">${u}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}</span>`;
+  } else if (timerLooptAnders) {
+    timerBtnClass = 'dagstart-timer-btn disabled';
+  }
+
+  // Items verzamelen (max 4)
+  const items = [];
+
+  // Notities met datum vandaag
+  const notitiesVandaag = (p.notities || []).filter(n => n.datum && n.datum.startsWith(todayStr));
+  notitiesVandaag.forEach(n => {
+    if (items.length < 4) {
+      const tijdStr = n.tijd ? `<span style="color:var(--muted);margin-left:4px">${n.tijd}</span>` : '';
+      items.push({ icon: '📅', text: escHtml(n.tekst) + tijdStr, badge: '' });
+    }
+  });
+
+  // Open taken deadline vandaag
+  const takenVandaag = (p.taken || []).filter(t => !t.voltooid && t.type !== 'notitie' && t.deadline && t.deadline.startsWith(todayStr));
+  takenVandaag.forEach(t => {
+    if (items.length < 4) {
+      items.push({ icon: '⬜', text: escHtml(t.omschrijving), badge: '<span class="planning-deadline-badge deadline-today" style="font-size:10px;padding:1px 6px">Vandaag</span>' });
+    }
+  });
+
+  // Open taken deadline morgen
+  const takenMorgen = (p.taken || []).filter(t => !t.voltooid && t.type !== 'notitie' && t.deadline && t.deadline.startsWith(tomorrowStr));
+  takenMorgen.forEach(t => {
+    if (items.length < 4) {
+      items.push({ icon: '⬜', text: escHtml(t.omschrijving), badge: '<span class="planning-deadline-badge deadline-tomorrow" style="font-size:10px;padding:1px 6px">Morgen</span>' });
+    }
+  });
+
+  // Overige open taken
+  const takenGetoond = new Set([...takenVandaag, ...takenMorgen].map(t => t.id));
+  const overigeOpenTaken = (p.taken || []).filter(t => !t.voltooid && t.type !== 'notitie' && !takenGetoond.has(t.id));
+  overigeOpenTaken.forEach(t => {
+    if (items.length < 4) items.push({ icon: '⬜', text: escHtml(t.omschrijving), badge: '' });
+  });
+
+  // Meer-taken telling
+  const totalMogelijk = notitiesVandaag.length + takenVandaag.length + takenMorgen.length + overigeOpenTaken.length;
+  const aantalNietGetoond = Math.max(0, totalMogelijk - items.length);
+
+  let itemsHtml = items.map(i => `
+    <div class="dagstart-project-item">
+      <span class="dagstart-item-icon">${i.icon}</span>
+      <span class="dagstart-item-text">${i.text}</span>
+      ${i.badge}
+    </div>`).join('');
+
+  if (aantalNietGetoond > 0) {
+    itemsHtml += `<div class="dagstart-meer-taken" data-action="show-project-taken" data-id="${p.id}">
+      +${aantalNietGetoond} meer taken →
+    </div>`;
+  }
+
+  return `<div class="dagstart-project-card">
+    <div class="dagstart-project-header">
+      <span style="font-size:15px">🏗</span>
+      <span class="dagstart-project-naam" data-action="open-project" data-id="${p.id}">${escHtml(p.naam)}</span>
+      <button class="${timerBtnClass}" ${timerBtnAction} title="${timerLooptVoorDit ? 'Timer stoppen' : 'Timer starten'}">${timerBtnIcon}</button>
+    </div>
+    ${itemsHtml}
+  </div>`;
+}
+
+// ===================================================
+// PROJECT STATUS TOGGLE (vanuit projectenlijst)
+// ===================================================
+
+async function toggleProjectStatusFromList(projectId) {
+  const cycle = { actief: 'afgerond', afgerond: 'actief', offerte: 'actief' };
+  const projects = _projectsListCache || await loadProjects();
+  const p = projects.find(pr => pr.id === projectId);
+  if (!p) return;
+  const newStatus = cycle[p.status] || 'actief';
+  try {
+    await updateProjectFields(projectId, { status: newStatus });
+    p.status = newStatus;
+    await renderProjectsList();
+    const labels = { actief: 'Actief', afgerond: 'Afgerond', offerte: 'Offerte' };
+    showToast(`Project ${labels[newStatus] || newStatus}`);
+  } catch (err) {
+    logError('toggleProjectStatusFromList', err);
+    showToast('Fout bij status wijzigen');
+  }
+}
+
 // ===================================================
 // SNELLE UREN-TIMER
 // ===================================================
 
 let timerInterval = null;
+let timerTickInterval = null;
 
 function initTimer() {
   const data = getTimerData();
   if (data) {
     timerInterval = setInterval(renderDagstartTimerCard, 30000);
+    startTimerTick();
   }
 }
 
-function timerKey() {
-  return 'bouwbuddy_timer_' + (currentUser?.id || 'anon');
+function startTimerTick() {
+  if (timerTickInterval) return;
+  timerTickInterval = setInterval(updateTimerDisplays, 1000);
+}
+
+function stopTimerTick() {
+  if (timerTickInterval) { clearInterval(timerTickInterval); timerTickInterval = null; }
+}
+
+function updateTimerDisplays() {
+  const data = getTimerData();
+  if (!data) { stopTimerTick(); return; }
+  const ms = Date.now() - data.start;
+  const u = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  const timeStr = `${u}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  document.querySelectorAll('.dagstart-timer-btn.active-timer .timer-elapsed').forEach(el => {
+    el.textContent = timeStr;
+  });
 }
 
 function getTimerData() {
-  try { return JSON.parse(localStorage.getItem(timerKey()) || 'null'); } catch (err) { logError('getTimerData', err); return null; }
+  try { return JSON.parse(localStorage.getItem('bouwbuddy_timer') || 'null'); } catch (err) { logError('getTimerData', err); return null; }
 }
 
 function renderDagstartTimerCard() {
@@ -4996,6 +5655,11 @@ function renderDagstartTimerCard() {
   </div>`;
 }
 
+// Alias for backward compat (called from old code paths)
+async function renderTimerArea() {
+  renderDagstartTimerCard();
+}
+
 async function startTimer() {
   // Voor AI-spraakcommando's: open modal met projectkeuze
   const projects = (await loadProjects()).filter(p => p.status === 'actief');
@@ -5016,8 +5680,9 @@ async function startTimer() {
 function confirmStartTimer() {
   const projectId = document.getElementById('m-timer-project')?.value || null;
   const omschrijving = document.getElementById('m-timer-omschrijving')?.value.trim() || '';
-  localStorage.setItem(timerKey(), JSON.stringify({ start: Date.now(), projectId, omschrijving }));
+  localStorage.setItem('bouwbuddy_timer', JSON.stringify({ start: Date.now(), projectId, omschrijving }));
   if (!timerInterval) timerInterval = setInterval(renderDagstartTimerCard, 30000);
+  startTimerTick();
   closeModal();
   renderDagstartTimerCard();
   showToast('Timer gestart');
@@ -5027,25 +5692,24 @@ function startTimerVanProject(projectId, projectNaam) {
   // Directe timer start vanuit dagstart project card (één tik)
   const bestaand = getTimerData();
   if (bestaand) { showToast('Stop eerst de huidige timer'); return; }
-  localStorage.setItem(timerKey(), JSON.stringify({ start: Date.now(), projectId, omschrijving: '' }));
+  localStorage.setItem('bouwbuddy_timer', JSON.stringify({ start: Date.now(), projectId, omschrijving: '' }));
   if (!timerInterval) timerInterval = setInterval(renderDagstartTimerCard, 30000);
+  startTimerTick();
   renderDagstartTimerCard();
-  // Project cards updaten (▶ → ⏹)
-  const mainEl = document.getElementById('dagstart-main-content');
-  if (mainEl) {
-    mainEl.querySelectorAll('.dagstart-timer-btn').forEach(btn => {
-      if (btn.getAttribute('onclick')?.includes(projectId)) {
-        btn.className = 'dagstart-timer-btn active-timer';
-        btn.setAttribute('onclick', 'stopTimerDirect()');
-        btn.title = 'Timer stoppen';
-        btn.textContent = '⏹';
-      } else {
-        btn.className = 'dagstart-timer-btn disabled';
-      }
-    });
-  }
+  // Alle timer-buttons updaten (dagstart + projectenlijst)
+  document.querySelectorAll('.dagstart-timer-btn').forEach(btn => {
+    const btnId = btn.dataset.id;
+    if (btnId === projectId || btn.getAttribute('onclick')?.includes(projectId)) {
+      btn.className = 'dagstart-timer-btn active-timer';
+      btn.dataset.action = 'stop-timer';
+      btn.removeAttribute('onclick');
+      btn.title = 'Timer stoppen';
+      btn.innerHTML = '⏹<span class="timer-elapsed">0:00:00</span>';
+    } else {
+      btn.className = 'dagstart-timer-btn disabled';
+    }
+  });
   showToast('⏱ Timer gestart — ' + escHtml(projectNaam));
-  if (AppState.currentScreen === 'projects') renderProjectsList();
 }
 
 async function stopTimerDirect() {
@@ -5056,9 +5720,10 @@ async function stopTimerDirect() {
   const uren = Math.max(0.25, Math.round(ms / 3600000 / 0.25) * 0.25);
   const projectId = data.projectId;
 
-  localStorage.removeItem(timerKey());
+  localStorage.removeItem('bouwbuddy_timer');
   clearInterval(timerInterval);
   timerInterval = null;
+  stopTimerTick();
 
   renderDagstartTimerCard();
 
@@ -5078,9 +5743,12 @@ async function stopTimerDirect() {
     showToast(uren + ' uur geregistreerd');
   }
 
-  // Dagstart opnieuw renderen om ▶ knop terug te tonen
-  if (AppState.currentScreen === 'projects') await renderProjectsList();
-  if (AppState.currentScreen === 'home') await renderDagstartScherm();
+  // Timer-buttons resetten op alle schermen
+  if (AppState.currentScreen === 'home') {
+    await renderDagstartScherm();
+  } else if (AppState.currentScreen === 'projects') {
+    await renderProjectsList();
+  }
 }
 
 async function stopTimer() {
@@ -5091,10 +5759,11 @@ async function stopTimer() {
   const uren = Math.max(0.25, Math.round(ms / 3600000 / 0.25) * 0.25);
 
   // Wis timer
-  localStorage.removeItem(timerKey());
+  localStorage.removeItem('bouwbuddy_timer');
   clearInterval(timerInterval);
   timerInterval = null;
-  renderDagstartTimerCard();
+  stopTimerTick();
+  await renderTimerArea();
 
   // Zoek projectnaam
   const projects = _projectsListCache || await loadProjects();
@@ -5187,13 +5856,10 @@ async function submitTimerFullEdit() {
 // ===================================================
 
 async function submitTextInput() {
-  if (!checkFeature('typen_ai')) {
-    showUpgradeModal('standaard');
-    return;
-  }
   const el = document.getElementById('text-input');
   const text = el?.value.trim();
   if (!text) return;
+  if (!getCurrentPlan().typAI) { showUpgradeModal('ai'); return; }
   el.value = '';
   el.style.height = '44px';
   addChatBubble(text, 'user');
@@ -5269,7 +5935,7 @@ async function renderFotos(p) {
   const count = document.getElementById('foto-count');
   if (!grid) return;
   const fotos = p.fotos || [];
-  count.textContent = fotos.length + ' / 10 foto\'s';
+  count.textContent = fotos.length + ' / 100 foto\'s';
   if (fotos.length === 0) {
     grid.innerHTML = '<p style="color:var(--muted);font-size:14px;grid-column:1/-1">Nog geen foto\'s toegevoegd.</p>';
     return;
@@ -5291,13 +5957,13 @@ async function renderFotos(p) {
 }
 
 async function handlePhotoInput(event) {
-  if (!checkFeature('fotos')) { showUpgradeModal('standaard'); return; }
   const file = event.target.files[0];
   if (!file) return;
   event.target.value = '';
   if (!AppState.currentProjectData) return;
   const fotos = AppState.currentProjectData.fotos || [];
-  if (fotos.length >= 10) { showToast('Maximum van 10 foto\'s bereikt'); return; }
+  const maxFotos = getCurrentPlan().maxFotosPerProject || 20;
+  if (fotos.length >= maxFotos) { showUpgradeModal('fotos'); return; }
 
   showToast('Foto uploaden...');
   const reader = new FileReader();
@@ -5367,9 +6033,11 @@ async function renderFinancien(p) {
 
   const kmVergoeding = settings.kilometerVergoeding || 0.23;
 
-  const totalUren = (p.uren || []).reduce((s, u) => s + (u.uren || 0), 0);
+  const reguliereUrenFin = (p.uren || []).filter(u => !u.meerwerk);
+  const meerwerkUrenFin = (p.uren || []).filter(u => u.meerwerk);
+  const totalUren = reguliereUrenFin.reduce((s, u) => s + (u.uren || 0), 0);
   const urenOmzet = totalUren * uurtarief;
-  const matKosten = (p.materialen || []).reduce((s, m) => {
+  const matKosten = (p.materialen || []).filter(m => !m.meerwerk).reduce((s, m) => {
     const prijs = parseFloat(m.prijs);
     const hoev = parseFloat(m.hoeveelheid) || 1;
     return s + (prijs > 0 ? prijs * hoev : 0);
@@ -5377,6 +6045,17 @@ async function renderFinancien(p) {
   const totalKm = (p.ritten || []).reduce((s, r) => s + (parseFloat(r.km) || 0), 0);
   const ritKosten = totalKm * kmVergoeding;
   const totaalExBTW = urenOmzet + matKosten + ritKosten;
+
+  // Meerwerk berekeningen
+  const mwUrenTotal = meerwerkUrenFin.reduce((s, u) => s + (u.uren || 0), 0);
+  const mwUrenOmzet = mwUrenTotal * uurtarief;
+  const mwMatKosten = (p.materialen || []).filter(m => m.meerwerk).reduce((s, m) => {
+    const prijs = parseFloat(m.prijs);
+    const hoev = parseFloat(m.hoeveelheid) || 1;
+    return s + (prijs > 0 ? prijs * hoev : 0);
+  }, 0);
+  const mwTotaal = mwUrenOmzet + mwMatKosten;
+  const hasMeerwerkFin = mwTotaal > 0;
   const margePercent = totaalExBTW > 0 ? Math.round(urenOmzet / totaalExBTW * 100) : (urenOmzet > 0 ? 100 : 0);
 
   let nacalcHTML = '';
@@ -5421,8 +6100,13 @@ async function renderFinancien(p) {
         <div class="fin-card-sub">Arbeid als % van omzet</div>
       </div>
     </div>
+    ${hasMeerwerkFin ? `<div class="fin-card" style="border-left:3px solid var(--orange);grid-column:1/-1">
+        <div class="fin-card-label" style="color:var(--orange)">Meerwerk totaal</div>
+        <div class="fin-card-value">€ ${fmtEuro(mwTotaal)}</div>
+        <div class="fin-card-sub">${mwUrenTotal > 0 ? mwUrenTotal + ' uur (€ ' + fmtEuro(mwUrenOmzet) + ')' : ''}${mwUrenTotal > 0 && mwMatKosten > 0 ? ' + ' : ''}${mwMatKosten > 0 ? 'materiaal € ' + fmtEuro(mwMatKosten) : ''}</div>
+      </div>` : ''}
     ${nacalcHTML}
-    ${totaalExBTW === 0 ? '<p style="color:var(--muted);font-size:14px;margin-top:12px">Voeg uren en materialen toe voor een berekening.</p>' : ''}`;
+    ${totaalExBTW === 0 && !hasMeerwerkFin ? '<p style="color:var(--muted);font-size:14px;margin-top:12px">Voeg uren en materialen toe voor een berekening.</p>' : ''}`;
 }
 
 // ===================================================
@@ -5511,7 +6195,7 @@ async function toggleFactuurStatus(projectId, factuurId) {
 }
 
 async function generateHerinnering(projectId, factuurId) {
-  if (!checkFeature('herinneringen')) { showUpgradeModal('allin'); return; }
+  if (!getCurrentPlan().betalingsherinneringen) { showUpgradeModal('herinneringen'); return; }
   if (!AppState.currentProjectData) return;
   const p = AppState.currentProjectData;
   const f = (p.facturen || []).find(f => f.id === factuurId);
@@ -5563,7 +6247,7 @@ async function generateHerinnering(projectId, factuurId) {
 // ===================================================
 
 async function saveAsTemplate(projectId) {
-  if (!checkFeature('templates')) { showUpgradeModal('allin'); return; }
+  if (!getCurrentPlan().templates) { showUpgradeModal('templates'); return; }
   closeModal();
   const p = AppState.currentProjectData;
   if (!p) return;
@@ -5732,7 +6416,7 @@ function exportDateLabel(van, tot) {
 }
 
 async function exportMoneybird() {
-  if (!checkFeature('exports')) { showUpgradeModal('allin'); return; }
+  if (!getCurrentPlan().boekhoudExport) { showUpgradeModal('export'); return; }
   const { van, tot } = getExportDateRange();
   let invoices;
   try { invoices = await loadAllInvoicesForExport(van, tot); }
@@ -5757,7 +6441,7 @@ async function exportMoneybird() {
 }
 
 async function exportEBoekhouden() {
-  if (!checkFeature('exports')) { showUpgradeModal('allin'); return; }
+  if (!getCurrentPlan().boekhoudExport) { showUpgradeModal('export'); return; }
   const { van, tot } = getExportDateRange();
   let invoices;
   try { invoices = await loadAllInvoicesForExport(van, tot); }
@@ -5892,7 +6576,7 @@ function buildUBLInvoice(inv, settings, btwPct) {
 }
 
 async function exportUBLXML() {
-  if (!checkFeature('exports')) { showUpgradeModal('allin'); return; }
+  if (!getCurrentPlan().boekhoudExport) { showUpgradeModal('export'); return; }
   if (!window.JSZip) { showToast('JSZip niet geladen — herlaad de pagina'); return; }
   const { van, tot } = getExportDateRange();
   let invoices;
@@ -5933,15 +6617,6 @@ function toggleBTWCard(q) {
 async function renderBTWOverzicht() {
   const el = document.getElementById('btw-content');
   if (!el) return;
-  if (!checkFeature('btw_overzicht')) {
-    el.innerHTML = `<div style="padding:24px;text-align:center">
-      <div style="font-size:40px;margin-bottom:12px">📊</div>
-      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">BTW-overzicht is beschikbaar in All-in</div>
-      <p style="font-size:14px;color:var(--muted);margin-bottom:20px">Bekijk je BTW-aangifte per kwartaal en exporteer facturen.</p>
-      <button class="btn btn-primary" onclick="showUpgradeModal('allin')">Bekijk pakketten</button>
-    </div>`;
-    return;
-  }
   el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--muted)">Laden…</div>';
 
   const settings = await loadSettings();
@@ -6188,37 +6863,14 @@ let _currentSettingsSub = null;
 
 function showSettingsSub(sub) {
   _currentSettingsSub = sub;
-  const titles = { bedrijf: 'Bedrijfsgegevens', tarieven: 'Tarieven', docs: 'Documenten', pakket: 'Mijn pakket' };
+  const titles = { bedrijf: 'Bedrijfsgegevens', tarieven: 'Tarieven', docs: 'Documenten' };
   document.getElementById('settings-overview').style.display = 'none';
   document.getElementById('settings-header-overview').style.display = 'none';
   document.querySelectorAll('.settings-sub').forEach(el => el.style.display = 'none');
   document.getElementById('settings-sub-title').textContent = titles[sub] || sub;
-  // Hide save button for pakket sub (read-only)
-  const saveBtn = document.querySelector('#settings-header-sub .btn-primary');
-  if (saveBtn) saveBtn.style.display = sub === 'pakket' ? 'none' : '';
   document.getElementById('settings-header-sub').style.display = 'flex';
   const subEl = document.getElementById('settings-sub-' + sub);
   if (subEl) { subEl.style.display = 'block'; }
-  if (sub === 'pakket') renderPakketSub();
-}
-
-function renderPakketSub() {
-  const status = getPlanStatus();
-  const labelEl = document.getElementById('pakket-plan-label');
-  if (!labelEl) return;
-  if (status.plan === 'trial' && status.active) {
-    labelEl.textContent = 'Trial — nog ' + status.dagenOver + (status.dagenOver === 1 ? ' dag' : ' dagen');
-  } else if (status.plan === 'standaard') {
-    labelEl.textContent = 'Standaard';
-  } else if (status.plan === 'allin') {
-    labelEl.textContent = 'All-in ⭐';
-  } else {
-    labelEl.textContent = 'Trial verlopen';
-    labelEl.style.color = 'var(--red)';
-  }
-  // Update summary in settings overview
-  const summaryEl = document.getElementById('settings-summary-pakket');
-  if (summaryEl) summaryEl.textContent = labelEl.textContent;
 }
 
 function hideSettingsSub() {
@@ -6261,20 +6913,6 @@ function updateSettingsSummaries() {
     if (s.betalingstermijn) parts.push('Betaling ' + s.betalingstermijn + ' dgn');
     docsEl.textContent = parts.length ? parts.join(' · ') : 'Offerte, factuur, voorwaarden';
   }
-
-  const pakketEl = document.getElementById('settings-summary-pakket');
-  if (pakketEl) {
-    const status = getPlanStatus();
-    if (status.plan === 'trial' && status.active) {
-      pakketEl.textContent = 'Trial — nog ' + status.dagenOver + (status.dagenOver === 1 ? ' dag' : ' dagen');
-    } else if (status.plan === 'standaard') {
-      pakketEl.textContent = 'Standaard';
-    } else if (status.plan === 'allin') {
-      pakketEl.textContent = 'All-in';
-    } else {
-      pakketEl.textContent = 'Trial verlopen — upgrade vereist';
-    }
-  }
 }
 
 // ===================================================
@@ -6307,6 +6945,12 @@ document.addEventListener('click', function handleDelegatedClick(e) {
   const id = el.dataset.id;
   console.log('click action:', action, 'id:', id);
 
+  // Stop propagation for actions inside a .project-card that are not 'open-project',
+  // so they don't bubble up and trigger the card's own 'open-project' action.
+  if (action !== 'open-project' && el.closest('.project-card')) {
+    e.stopPropagation();
+  }
+
   switch (action) {
     // Leads
     case 'open-lead':         openLeadDetail(id); break;
@@ -6319,13 +6963,14 @@ document.addEventListener('click', function handleDelegatedClick(e) {
     case 'submit-new-lead':   submitNewLead(); break;
     // Projecten
     case 'open-project':
-      console.log('[debug] open-project click ontvangen, id:', id);
       showScreen('project-detail', id);
       break;
     case 'show-project-taken':
       showScreen('project-detail', id);
       setTimeout(() => switchTab('taken'), 100);
       break;
+    // Status toggle
+    case 'toggle-project-status': toggleProjectStatusFromList(id); break;
     // Timer
     case 'start-timer':       startTimerVanProject(id, el.dataset.naam); break;
     case 'stop-timer':        stopTimerDirect(); break;
@@ -6358,14 +7003,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Sessie is ongeldig (user verwijderd of token corrupt)
       await sb.auth.signOut();
       showAuthScreen();
+      document.getElementById('splash-screen')?.remove();
     } else {
       currentUser = initialSession.user;
       await ensureProfile();
+      const sub = await loadSubscription();
+      updateSubscriptionUI();
+      if (sub.plan === 'expired') showExpiredOverlay();
       document.getElementById('bottom-nav').style.display = 'flex';
       await showScreen('home');
+      document.getElementById('splash-screen')?.remove();
     }
   } else {
     showAuthScreen();
+    document.getElementById('splash-screen')?.remove();
   }
 
   sb.auth.onAuthStateChange(async (event, session) => {
@@ -6374,13 +7025,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (currentUser?.id === session.user.id) return;
       currentUser = session.user;
       await ensureProfile();
+      const sub = await loadSubscription();
+      updateSubscriptionUI();
+      if (sub.plan === 'expired') showExpiredOverlay();
       document.getElementById('bottom-nav').style.display = 'flex';
       await showScreen('home');
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;
       _settingsCache = null;
       _projectsListCache = null;
+      _subscriptionCache = null;
       AppState.currentProjectData = null;
+      removeExpiredOverlay();
       showAuthScreen();
     }
   });
