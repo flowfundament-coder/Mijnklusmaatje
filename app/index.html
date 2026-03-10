@@ -4379,7 +4379,7 @@ function buildPdfHeader(doc, type, settings, project, nummer, datum, extra) {
   doc.setTextColor(...navy);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
-  doc.text(settings.bedrijfsnaam || 'Mijn Bedrijf', lm, y);
+  doc.text(sanitizePdfText(settings.bedrijfsnaam || 'Mijn Bedrijf'), lm, y);
   y += 6;
 
   doc.setFont('helvetica', 'normal');
@@ -4393,7 +4393,7 @@ function buildPdfHeader(doc, type, settings, project, nummer, datum, extra) {
     settings.kvkNummer ? 'KvK: ' + settings.kvkNummer : null,
     settings.btwNummer ? 'BTW: ' + settings.btwNummer : null,
   ].filter(Boolean);
-  bedrijfLines.forEach(line => { doc.text(line, lm, y); y += 4.5; });
+  bedrijfLines.forEach(line => { doc.text(sanitizePdfText(line), lm, y); y += 4.5; });
 
   // Document info rechts
   const rx = 130;
@@ -4431,21 +4431,21 @@ function buildPdfHeader(doc, type, settings, project, nummer, datum, extra) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(...navy);
-  doc.text(project.klant?.naam || 'Onbekende klant', lm + 4, y + 12);
+  doc.text(sanitizePdfText(project.klant?.naam || 'Onbekende klant'), lm + 4, y + 12);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...muted);
   let cy = y + 17;
-  if (project.klant?.adres)  { doc.text(project.klant.adres, lm + 4, cy); cy += 4.5; }
+  if (project.klant?.adres)  { doc.text(sanitizePdfText(project.klant.adres), lm + 4, cy); cy += 4.5; }
   const klantPlaats = [project.klant?.postcode, project.klant?.plaats].filter(Boolean).join(' ');
-  if (klantPlaats) doc.text(klantPlaats, lm + 4, cy);
+  if (klantPlaats) doc.text(sanitizePdfText(klantPlaats), lm + 4, cy);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(...navy);
   doc.text('Project:', lm + 4, y + 25);
   doc.setFont('helvetica', 'normal');
-  doc.text(project.naam, lm + 20, y + 25);
+  doc.text(sanitizePdfText(project.naam), lm + 20, y + 25);
 
   return y + 36;
 }
@@ -4534,6 +4534,24 @@ function pdfAddPageFooters(doc, footerText) {
   }
 }
 
+function sanitizePdfText(str) {
+  if (!str) return '';
+  return String(str)
+    // Smart quotes vervangen door gewone quotes
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+    // Speciale spaties vervangen door gewone spatie
+    .replace(/[\u00A0\u2000-\u200B\u202F\u205F\u3000\uFEFF]/g, ' ')
+    // Em dash, en dash
+    .replace(/[\u2013\u2014]/g, '-')
+    // Ellipsis
+    .replace(/\u2026/g, '...')
+    // Alle overige niet-ASCII tekens die problemen kunnen geven verwijderen
+    // Maar behoud euro-teken en Nederlandse tekens
+    .replace(/[^\x20-\x7E\u00C0-\u00FF\u20AC]/g, '')
+    .trim();
+}
+
 async function generateOfferte(force = false) {
   const p = AppState.currentProjectData;
   if (!p) return;
@@ -4561,7 +4579,7 @@ async function generateOfferte(force = false) {
   let y = buildPdfHeader(doc, 'OFFERTE', settings, p, nummer, datum, [['Geldig tot:', geldigStr]]);
 
   // Intro tekst
-  const intro = settings.introTekst || 'Hierbij ontvangt u onze offerte voor de hieronder omschreven werkzaamheden.';
+  const intro = sanitizePdfText(settings.introTekst || 'Hierbij ontvangt u onze offerte voor de hieronder omschreven werkzaamheden.');
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...muted);
@@ -4630,8 +4648,9 @@ async function generateOfferte(force = false) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(...navy);
-      doc.text((m.naam.length > 38 ? m.naam.substring(0, 36) + '...' : m.naam), lm + 3, y + 4.3);
-      if (m.hoeveelheid) doc.text(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : ''), 118, y + 4.3);
+      const matNaamOff = sanitizePdfText(m.naam);
+      doc.text((matNaamOff.length > 38 ? matNaamOff.substring(0, 36) + '...' : matNaamOff), lm + 3, y + 4.3);
+      if (m.hoeveelheid) doc.text(sanitizePdfText(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : '')), 118, y + 4.3);
       if (prijs > 0) {
         doc.text('€ ' + fmtEuro(prijs), 140, y + 4.3);
         doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
@@ -4685,7 +4704,7 @@ async function generateOfferte(force = false) {
     y += 5;
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...muted);
-    if (settings.bankrekening) { doc.text('IBAN: ' + settings.bankrekening, lm, y); y += 4.5; }
+    if (settings.bankrekening) { doc.text('IBAN: ' + sanitizePdfText(settings.bankrekening), lm, y); y += 4.5; }
     const termijn = settings.betalingstermijn || 14;
     doc.text(`Gelieve te betalen binnen ${termijn} dagen na akkoord.`, lm, y);
     y += 8;
@@ -4702,7 +4721,7 @@ async function generateOfferte(force = false) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(...muted);
-    doc.splitTextToSize(settings.voorwaarden, 170).forEach(line => {
+    doc.splitTextToSize(sanitizePdfText(settings.voorwaarden), 170).forEach(line => {
       y = pdfNewPageIfNeeded(doc, y, 4.5);
       doc.text(line, lm, y);
       y += 4.5;
@@ -4757,7 +4776,7 @@ async function generateFactuur(force = false) {
   let y = buildPdfHeader(doc, 'FACTUUR', settings, p, nummer, datum, [['Vervaldatum:', vervalStr]]);
 
   // Intro tekst
-  const intro = settings.introTekst || 'Hierbij ontvangt u onze factuur voor de hieronder omschreven werkzaamheden.';
+  const intro = sanitizePdfText(settings.introTekst || 'Hierbij ontvangt u onze factuur voor de hieronder omschreven werkzaamheden.');
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...muted);
@@ -4801,7 +4820,7 @@ async function generateFactuur(force = false) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(...navy);
-      const omschr = (u.omschrijving || 'Arbeidskosten').substring(0, 32);
+      const omschr = sanitizePdfText(u.omschrijving || 'Arbeidskosten').substring(0, 32);
       doc.text(omschr, lm + 3, y + 4.3);
       doc.setTextColor(...muted);
       doc.text(new Date(u.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }), 100, y + 4.3);
@@ -4839,9 +4858,10 @@ async function generateFactuur(force = false) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(...navy);
-      doc.text((m.naam.length > 38 ? m.naam.substring(0, 36) + '...' : m.naam), lm + 3, y + 4.3);
+      const matNaam = sanitizePdfText(m.naam);
+      doc.text((matNaam.length > 38 ? matNaam.substring(0, 36) + '...' : matNaam), lm + 3, y + 4.3);
       doc.setTextColor(...muted);
-      if (m.hoeveelheid) doc.text(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : ''), 126, y + 4.3);
+      if (m.hoeveelheid) doc.text(sanitizePdfText(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : '')), 126, y + 4.3);
       doc.setTextColor(...navy);
       doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
       y += 6.5;
@@ -4877,10 +4897,11 @@ async function generateFactuur(force = false) {
       subtotaal += bedrag;
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
-      const ritOmschr = r.omschrijving || 'Reiskosten';
-      const route = [r.vanuit, r.bestemming].filter(Boolean).join(' → ');
+      const ritOmschr = sanitizePdfText(r.omschrijving || 'Reiskosten');
+      const vanuit = sanitizePdfText(r.vanuit || '');
+      const bestemming = sanitizePdfText(r.bestemming || '');
+      const route = [vanuit, bestemming].filter(Boolean).join(' > ');
       let ritLabel = route ? ritOmschr + ' (' + route + ')' : ritOmschr;
-      // Truncate om rendering-problemen te voorkomen
       if (ritLabel.length > 40) ritLabel = ritLabel.substring(0, 38) + '...';
       const rowH = 6.5;
       y = pdfNewPageIfNeeded(doc, y, rowH);
@@ -4938,7 +4959,7 @@ async function generateFactuur(force = false) {
   y += 5;
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...muted);
-  if (settings.bankrekening) { doc.text('IBAN: ' + settings.bankrekening, lm, y); y += 4.5; }
+  if (settings.bankrekening) { doc.text('IBAN: ' + sanitizePdfText(settings.bankrekening), lm, y); y += 4.5; }
   doc.text(`Graag betalen binnen ${termijn} dagen onder vermelding van ${nummer}.`, lm, y);
   y += 7;
   doc.setFont('helvetica', 'italic');
@@ -4956,7 +4977,7 @@ async function generateFactuur(force = false) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(...muted);
-    doc.splitTextToSize(settings.voorwaarden, 170).forEach(line => {
+    doc.splitTextToSize(sanitizePdfText(settings.voorwaarden), 170).forEach(line => {
       y = pdfNewPageIfNeeded(doc, y, 4.5);
       doc.text(line, lm, y);
       y += 4.5;
@@ -6594,21 +6615,21 @@ async function generateHerinnering(projectId, factuurId) {
   doc.setFontSize(10);
   doc.setTextColor(...navy);
   const tekst = [
-    `Geachte ${p.klant?.naam || 'klant'},`,
+    `Geachte ${sanitizePdfText(p.klant?.naam || 'klant')},`,
     '',
     `Hierbij attenderen wij u vriendelijk op het volgende openstaande bedrag:`,
     '',
-    `Factuurnummer : ${f.nummer}`,
+    `Factuurnummer : ${sanitizePdfText(f.nummer)}`,
     `Factuurbedrag : € ${fmtEuro(f.totaal || f.bedrag || 0)} incl. BTW`,
     `Vervaldatum   : ${vervalStr}`,
     '',
     `Wij verzoeken u vriendelijk het openstaande bedrag binnen 7 dagen over te`,
-    `maken op IBAN ${settings.bankrekening || '—'} o.v.v. factuurnummer ${f.nummer}.`,
+    `maken op IBAN ${sanitizePdfText(settings.bankrekening || '-')} o.v.v. factuurnummer ${sanitizePdfText(f.nummer)}.`,
     '',
-    `Bij vragen kunt u contact opnemen via ${settings.email || settings.telefoon || '—'}.`,
+    `Bij vragen kunt u contact opnemen via ${sanitizePdfText(settings.email || settings.telefoon || '-')}.`,
     '',
     `Met vriendelijke groet,`,
-    `${settings.bedrijfsnaam || ''}`
+    `${sanitizePdfText(settings.bedrijfsnaam || '')}`
   ];
   tekst.forEach(regel => { doc.text(regel, 20, y); y += 6; });
 
