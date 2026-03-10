@@ -4878,15 +4878,18 @@ async function generateFactuur(force = false) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       const ritOmschr = r.omschrijving || 'Reiskosten';
-      const route = [r.vanuit, r.bestemming].filter(Boolean).join(' > ');
-      const ritLabel = route ? ritOmschr + ' (' + route + ')' : ritOmschr;
-      const ritLines = doc.splitTextToSize(ritLabel, 72);
-      const rowH = Math.max(6.5, ritLines.length * 4.5 + 2);
+      const route = [r.vanuit, r.bestemming].filter(Boolean).join(' → ');
+      let ritLabel = route ? ritOmschr + ' (' + route + ')' : ritOmschr;
+      // Truncate om rendering-problemen te voorkomen
+      if (ritLabel.length > 40) ritLabel = ritLabel.substring(0, 38) + '...';
+      const rowH = 6.5;
       y = pdfNewPageIfNeeded(doc, y, rowH);
       doc.setFillColor(ri % 2 === 0 ? 249 : 255, ri % 2 === 0 ? 250 : 255, ri % 2 === 0 ? 251 : 255);
       doc.rect(lm, y, 170, rowH, 'F');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
       doc.setTextColor(...navy);
-      doc.text(ritLines, lm + 3, y + 4.3);
+      doc.text(ritLabel, lm + 3, y + 4.3);
       doc.setTextColor(...muted);
       doc.text(new Date(r.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }), 100, y + 4.3);
       doc.setTextColor(...navy);
