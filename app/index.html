@@ -2206,6 +2206,8 @@ async function handleSignOut() {
   stopTimerTick();
   AppState.currentProjectData = null;
   AppState.currentProjectId = null;
+  const chatBubbles = document.getElementById('chat-bubbles');
+  if (chatBubbles) chatBubbles.innerHTML = '';
   removeExpiredOverlay();
   showAuthScreen();
 }
