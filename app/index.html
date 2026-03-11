@@ -6,6 +6,8 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#F97316">
   <title>KlusMaatje</title>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -7543,6 +7545,10 @@ window.addEventListener('beforeunload', () => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeModal();
   });
@@ -7609,6 +7615,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 });
+
 </script>
 </body>
 </html>
