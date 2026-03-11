@@ -1013,6 +1013,96 @@
     .dagstart-timer-btn:active { opacity: 0.75; }
     .dagstart-timer-btn.active-timer { background: var(--red-bg); color: var(--red); width: auto; min-width: 36px; padding: 4px 8px; display: inline-flex; flex-direction: column; gap: 1px; }
     .dagstart-timer-btn.disabled { opacity: 0.35; pointer-events: none; }
+
+    /* Timer button - projectenscherm (nieuw design) */
+    .project-timer-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--orange);
+      background: transparent;
+      color: var(--orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.2s ease;
+    }
+    .project-timer-btn:active {
+      background: var(--orange-light);
+    }
+    .project-timer-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+    .project-timer-btn.disabled {
+      border-color: var(--border);
+      color: var(--border);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .project-card.timer-active {
+      border-left: 3px solid var(--orange);
+      background: var(--orange-light);
+    }
+    .project-timer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-top: 1px solid #FED7AA;
+      margin-top: 10px;
+    }
+    .project-timer-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .project-timer-bar-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--orange);
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .project-timer-bar-time {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--orange);
+      font-variant-numeric: tabular-nums;
+    }
+    .project-timer-bar-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+    .project-timer-stop {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: var(--red);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.15s;
+    }
+    .project-timer-stop:active {
+      opacity: 0.7;
+    }
+    .project-timer-stop svg {
+      width: 14px;
+      height: 14px;
+    }
     .badge-clickable { cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .badge-clickable:active { opacity: 0.7; }
     .dagstart-project-item {
@@ -2777,6 +2867,15 @@ async function showScreen(name, projectId = null) {
   } else if (name === 'home') {
     hideNotification();
     await renderDagstartScherm();
+    // Toon install banner 5 seconden na laden homescreen (eenmalig)
+    setTimeout(() => {
+      if (isStandalone()) return;
+      if (_deferredInstallPrompt) {
+        showInstallBanner('prompt');
+      } else if (isIOS()) {
+        showInstallBanner('ios');
+      }
+    }, 5000);
   } else if (name === 'btw') {
     if (!getCurrentPlan().btwOverzicht) { showUpgradeModal('btw'); return; }
     document.getElementById('btw-jaar').textContent = new Date().getFullYear();
@@ -2873,38 +2972,60 @@ async function renderProjectsList() {
     return;
   }
 
+  const timerData = getTimerData();
   el.innerHTML = sorted.map(p => {
     const badge = { actief: 'badge-actief', offerte: 'badge-offerte', afgerond: 'badge-afgerond' }[p.status] || 'badge-afgerond';
     const label = { actief: 'Actief', offerte: 'Offerte', afgerond: 'Afgerond' }[p.status] || p.status;
     const datum = new Date(p.aangemaakt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
-    const timerData = getTimerData();
     const timerLoopt = timerData && timerData.projectId === p.id;
     const timerAnders = timerData && timerData.projectId !== p.id;
-    let timerBtnClass = 'dagstart-timer-btn';
-    let timerBtnData = `data-action="start-timer" data-id="${p.id}" data-naam="${escHtml(p.naam)}"`;
-    let timerBtnIcon = '▶';
-    let timerElapsed = '';
+
+    // Timer knop HTML
+    let timerBtnHtml = '';
+    let timerBarHtml = '';
+    let cardExtraClass = '';
     if (timerLoopt) {
-      timerBtnClass = 'dagstart-timer-btn active-timer';
-      timerBtnData = 'data-action="stop-timer"';
+      // Actieve timer voor DIT project: geen play-knop, wel timer balk onderaan
+      cardExtraClass = ' timer-active';
       const ms = Date.now() - timerData.start;
       const u = Math.floor(ms / 3600000);
       const m = Math.floor((ms % 3600000) / 60000);
       const s = Math.floor((ms % 60000) / 1000);
-      timerBtnIcon = `⏹<span class="timer-elapsed">${u}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}</span>`;
+      timerBarHtml = `<div class="project-timer-bar">
+        <div class="project-timer-bar-left">
+          <span class="project-timer-bar-dot"></span>
+          <div>
+            <div class="project-timer-bar-time timer-elapsed">${u}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}</div>
+            <div class="project-timer-bar-label">${escHtml(timerData.omschrijving || 'Timer loopt')}</div>
+          </div>
+        </div>
+        <button class="project-timer-stop" data-action="stop-timer" title="Timer stoppen">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+        </button>
+      </div>`;
     } else if (timerAnders) {
-      timerBtnClass = 'dagstart-timer-btn disabled';
+      // Timer loopt voor ander project: disabled play-knop
+      timerBtnHtml = `<button class="project-timer-btn disabled" title="Stop eerst de andere timer">
+        <svg viewBox="0 0 24 24" fill="var(--border)" stroke="none"><polygon points="6,3 20,12 6,21"/></svg>
+      </button>`;
+    } else {
+      // Geen timer actief: normale play-knop
+      timerBtnHtml = `<button class="project-timer-btn" data-action="start-timer" data-id="${p.id}" data-naam="${escHtml(p.naam)}" title="Timer starten">
+        <svg viewBox="0 0 24 24" fill="var(--orange)" stroke="none"><polygon points="6,3 20,12 6,21"/></svg>
+      </button>`;
     }
-    return `<div class="project-card${p.status === 'afgerond' ? ' project-card-afgerond' : ''}" data-action="open-project" data-id="${p.id}">
+
+    return `<div class="project-card${p.status === 'afgerond' ? ' project-card-afgerond' : ''}${cardExtraClass}" data-action="open-project" data-id="${p.id}">
       <div class="project-card-top">
         <div class="project-name" style="flex:1">${p.status === 'afgerond' ? '✓ ' : ''}${escHtml(p.naam)}</div>
-        <button class="${timerBtnClass}" ${timerBtnData} title="${timerLoopt ? 'Timer stoppen' : 'Timer starten'}">${timerBtnIcon}</button>
+        ${timerBtnHtml}
         <span class="badge ${badge} badge-clickable" data-action="toggle-project-status" data-id="${p.id}">${label}</span>
       </div>
       <div class="project-meta">
         ${p.klant?.naam ? `<span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${escHtml(p.klant.naam)}</span>` : ''}
         <span>${datum}</span>
       </div>
+      ${timerBarHtml}
     </div>`;
   }).join('');
 }
@@ -5919,7 +6040,7 @@ function updateTimerDisplays() {
   const s = Math.floor((ms % 60000) / 1000);
   const timeStr = `${u}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   if (!_timerDisplayEls || _timerDisplayEls.length === 0) {
-    _timerDisplayEls = document.querySelectorAll('.dagstart-timer-btn.active-timer .timer-elapsed');
+    _timerDisplayEls = document.querySelectorAll('.dagstart-timer-btn.active-timer .timer-elapsed, .project-timer-bar-time.timer-elapsed');
   }
   _timerDisplayEls.forEach(el => { el.textContent = timeStr; });
 }
@@ -5936,6 +6057,32 @@ function setTimerData(data) {
   } else {
     localStorage.removeItem('bouwbuddy_timer');
   }
+}
+
+function resetAllTimerButtons() {
+  // Reset dagstart-timer-btn (homescreen)
+  document.querySelectorAll('.dagstart-timer-btn').forEach(btn => {
+    btn.classList.remove('active-timer', 'disabled');
+    btn.style.cssText = '';
+    const id = btn.dataset.id;
+    const naam = btn.dataset.naam || '';
+    if (id) {
+      btn.dataset.action = 'start-timer';
+      btn.title = 'Timer starten';
+      btn.innerHTML = '▶';
+    }
+  });
+  // Reset project-timer-btn (projectenscherm)
+  document.querySelectorAll('.project-timer-btn.disabled').forEach(btn => {
+    btn.classList.remove('disabled');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="var(--orange)" stroke="none"><polygon points="6,3 20,12 6,21"/></svg>';
+  });
+  // Remove timer-active class and timer bars from project cards
+  document.querySelectorAll('.project-card.timer-active').forEach(card => {
+    card.classList.remove('timer-active');
+    const bar = card.querySelector('.project-timer-bar');
+    if (bar) bar.remove();
+  });
 }
 
 function renderDagstartTimerCard() {
@@ -5998,18 +6145,10 @@ function confirmStartTimer(projectId, projectNaam, metOmschrijving) {
   if (!timerInterval) timerInterval = setInterval(renderDagstartTimerCard, 30000);
   startTimerTick();
   renderDagstartTimerCard();
-  document.querySelectorAll('.dagstart-timer-btn').forEach(btn => {
-    const btnId = btn.dataset.id;
-    if (btnId === projectId || btn.getAttribute('onclick')?.includes(projectId)) {
-      btn.className = 'dagstart-timer-btn active-timer';
-      btn.dataset.action = 'stop-timer';
-      btn.removeAttribute('onclick');
-      btn.title = 'Timer stoppen';
-      btn.innerHTML = '⏹<span class="timer-elapsed">0:00:00</span>';
-    } else {
-      btn.className = 'dagstart-timer-btn disabled';
-    }
-  });
+  // Re-render the projects list to show the new timer state
+  if (AppState.currentScreen === 'projects') {
+    renderProjectsList();
+  }
   showToast('⏱ Timer gestart — ' + escHtml(projectNaam));
 }
 
@@ -6027,6 +6166,7 @@ async function stopTimerDirect() {
   stopTimerTick();
 
   renderDagstartTimerCard();
+  resetAllTimerButtons();
 
   if (projectId) {
     try {
@@ -6065,6 +6205,12 @@ async function stopTimer() {
   timerInterval = null;
   stopTimerTick();
   renderDagstartTimerCard();
+  resetAllTimerButtons();
+
+  // Re-render projectenlijst als we daar zijn
+  if (AppState.currentScreen === 'projects') {
+    renderProjectsList();
+  }
 
   // Zoek projectnaam
   const projects = _projectsListCache || await loadProjects();
@@ -7545,7 +7691,6 @@ let _installBannerDismissed = false;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   _deferredInstallPrompt = e;
-  showInstallBanner('prompt');
 });
 
 function isStandalone() {
@@ -7646,13 +7791,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     showAuthScreen();
     document.getElementById('splash-screen')?.remove();
   }
-
-  // Toon iOS install banner na 3 seconden (als niet al geïnstalleerd)
-  setTimeout(() => {
-    if (isIOS() && !isStandalone() && !_deferredInstallPrompt) {
-      showInstallBanner('ios');
-    }
-  }, 3000);
 
   sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
