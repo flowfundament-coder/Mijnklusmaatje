@@ -1433,7 +1433,7 @@
     <!-- Foto's -->
     <div class="tab-content" id="tab-fotos">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span class="form-label" style="margin:0" id="foto-count">0 / 100 foto's</span>
+        <span class="form-label" style="margin:0" id="foto-count">0 foto's</span>
         <label class="btn btn-primary btn-sm" style="cursor:pointer;margin:0">
           📷 Foto toevoegen
           <input type="file" accept="image/*" capture="environment" id="foto-input" style="display:none" onchange="handlePhotoInput(event)">
@@ -6339,7 +6339,8 @@ async function renderFotos(p) {
   const count = document.getElementById('foto-count');
   if (!grid) return;
   const fotos = p.fotos || [];
-  count.textContent = fotos.length + ' / 100 foto\'s';
+  const maxFotos = getCurrentPlan().maxFotosPerProject || 20;
+  count.textContent = fotos.length + ' / ' + maxFotos + ' foto\'s';
   if (fotos.length === 0) {
     grid.innerHTML = '<p style="color:var(--muted);font-size:14px;grid-column:1/-1">Nog geen foto\'s toegevoegd.</p>';
     return;
