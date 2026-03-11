@@ -3270,6 +3270,13 @@ async function saveEditMateriaal(materiaalId) {
   const hoeveelheid = document.getElementById('m-edit-hoeveelheid')?.value || null;
   const eenheid = document.getElementById('m-edit-eenheid')?.value.trim() || '';
   const prijs = parseFloat(document.getElementById('m-edit-prijs')?.value) || null;
+  // Sanity check: waarschuw bij hoge bedragen
+  if (prijs !== null && prijs > 10000) {
+    if (!confirm('Prijs is ' + fmtEuro(prijs) + ' per eenheid. Klopt dat?')) return;
+  }
+  if (prijs !== null && hoeveelheid && parseFloat(hoeveelheid) * prijs > 50000) {
+    if (!confirm('Totaalbedrag is ' + fmtEuro(parseFloat(hoeveelheid) * prijs) + '. Klopt dat?')) return;
+  }
   try {
     const { error } = await sb.from('materialen').update({ naam, hoeveelheid, eenheid, prijs }).eq('id', materiaalId);
     if (error) throw error;
@@ -4072,7 +4079,15 @@ async function submitItem(type) {
       const naam = document.getElementById('m-naam')?.value.trim();
       if (!naam) { showToast('Vul een naam in'); return; }
       const prijs = parseFloat(document.getElementById('m-prijs')?.value) || null;
-      const row = await addMateriaalDB(AppState.currentProjectId, { naam, hoeveelheid: document.getElementById('m-hoeveelheid')?.value || '', eenheid: document.getElementById('m-eenheid')?.value.trim() || '', prijs, meerwerk });
+      const hoeveelheid = document.getElementById('m-hoeveelheid')?.value || '';
+      // Sanity check: waarschuw bij hoge bedragen
+      if (prijs !== null && prijs > 10000) {
+        if (!confirm('Prijs is ' + fmtEuro(prijs) + ' per eenheid. Klopt dat?')) return;
+      }
+      if (prijs !== null && hoeveelheid && parseFloat(hoeveelheid) * prijs > 50000) {
+        if (!confirm('Totaalbedrag is ' + fmtEuro(parseFloat(hoeveelheid) * prijs) + '. Klopt dat?')) return;
+      }
+      const row = await addMateriaalDB(AppState.currentProjectId, { naam, hoeveelheid, eenheid: document.getElementById('m-eenheid')?.value.trim() || '', prijs, meerwerk });
       AppState.currentProjectData.materialen.push({ id: row.id, naam: row.naam, hoeveelheid: row.hoeveelheid, eenheid: row.eenheid, prijs: row.prijs, meerwerk: row.meerwerk });
     } else if (type === 'uren') {
       const uren = parseFloat(document.getElementById('m-uren')?.value);
@@ -4634,6 +4649,9 @@ function sanitizePdfText(str) {
 }
 
 async function generateOfferte(force = false) {
+  if (!AppState.currentProjectId) return;
+  // Altijd verse data ophalen om stale data te voorkomen
+  AppState.currentProjectData = await fetchProjectWithData(AppState.currentProjectId);
   const p = AppState.currentProjectData;
   if (!p) return;
   const settings = await loadSettings();
@@ -4831,6 +4849,9 @@ async function generateOfferte(force = false) {
 }
 
 async function generateFactuur(force = false) {
+  if (!AppState.currentProjectId) return;
+  // Altijd verse data ophalen om stale data te voorkomen
+  AppState.currentProjectData = await fetchProjectWithData(AppState.currentProjectId);
   const p = AppState.currentProjectData;
   if (!p) return;
   const settings = await loadSettings();
@@ -4941,9 +4962,10 @@ async function generateFactuur(force = false) {
       doc.setTextColor(...navy);
       const matNaam = sanitizePdfText(m.naam);
       doc.text((matNaam.length > 38 ? matNaam.substring(0, 36) + '...' : matNaam), lm + 3, y + 4.3);
-      doc.setTextColor(...muted);
-      if (m.hoeveelheid) doc.text(sanitizePdfText(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : '')), 126, y + 4.3);
+      // Datum-kolom leeg voor materialen (kolom bestaat in tabelkop)
       doc.setTextColor(...navy);
+      const hoevStr = m.hoeveelheid ? sanitizePdfText(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : '')) : '1';
+      doc.text(hoevStr + ' \u00D7 ' + fmtEuro(prijs), 126, y + 4.3);
       doc.text(fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
       y += 6.5;
       doc.setDrawColor(...light);
@@ -7732,6 +7754,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (event === 'SIGNED_IN' && session?.user) {
       // Voorkom dubbele navigatie als we al ingelogd zijn
       if (currentUser?.id === session.user.id) return;
+      // Wis alle caches van vorige sessie/account
+      _settingsCache = null;
+      _projectsListCache = null;
+      _subscriptionCache = null;
+      AppState.currentProjectData = null;
+      AppState.currentProjectId = null;
       currentUser = session.user;
       await ensureProfile();
       const sub = await loadSubscription();
