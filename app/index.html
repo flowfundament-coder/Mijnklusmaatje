@@ -1185,6 +1185,62 @@
       0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
       30% { opacity: 1; transform: translateY(-4px); }
     }
+    /* === INSTALL BANNER === */
+    .install-banner {
+      position: fixed;
+      bottom: calc(var(--nav-h) + 8px);
+      left: 12px;
+      right: 12px;
+      background: var(--card);
+      border: 1.5px solid var(--orange);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      z-index: 150;
+      animation: slideUp 0.3s ease-out;
+    }
+    .install-banner-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .install-banner-text {
+      flex: 1;
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .install-banner-text strong {
+      font-weight: 700;
+    }
+    .install-banner-btn {
+      flex-shrink: 0;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .install-banner-btn:active { opacity: 0.8; }
+    .install-banner-close {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+    }
   </style>
 </head>
 <body>
@@ -1771,6 +1827,14 @@
     <div class="modal-title" id="modal-title">Toevoegen</div>
     <div id="modal-body"></div>
   </div>
+</div>
+
+<!-- Install banner -->
+<div class="install-banner" id="install-banner" style="display:none">
+  <span class="install-banner-icon">📲</span>
+  <div class="install-banner-text" id="install-banner-text"></div>
+  <button class="install-banner-btn" id="install-banner-btn">Installeren</button>
+  <button class="install-banner-close" onclick="dismissInstallBanner()">✕</button>
 </div>
 
 <!-- Toast -->
@@ -7544,6 +7608,70 @@ window.addEventListener('beforeunload', () => {
   stopTimerTick();
 });
 
+// ===================================================
+// PWA INSTALL BANNER
+// ===================================================
+
+let _deferredInstallPrompt = null;
+let _installBannerDismissed = false;
+
+// Vang het beforeinstallprompt event op (Chrome/Edge/Android)
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  showInstallBanner('prompt');
+});
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+}
+
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+function showInstallBanner(type) {
+  if (isStandalone()) return; // Al geïnstalleerd
+  if (_installBannerDismissed) return;
+  if (localStorage.getItem('klusmaatje_install_dismissed')) return;
+
+  const banner = document.getElementById('install-banner');
+  const textEl = document.getElementById('install-banner-text');
+  const btnEl = document.getElementById('install-banner-btn');
+  if (!banner || !textEl || !btnEl) return;
+
+  if (type === 'prompt') {
+    textEl.innerHTML = '<strong>KlusMaatje installeren?</strong><br>Voeg toe aan je startscherm voor snelle toegang.';
+    btnEl.textContent = 'Installeren';
+    btnEl.onclick = triggerInstallPrompt;
+  } else if (type === 'ios') {
+    textEl.innerHTML = '<strong>KlusMaatje toevoegen?</strong><br>Tik op <span style="font-size:16px">⎙</span> en kies <em>"Zet op beginscherm"</em>.';
+    btnEl.textContent = 'Begrepen';
+    btnEl.onclick = dismissInstallBanner;
+  }
+
+  banner.style.display = 'flex';
+}
+
+async function triggerInstallPrompt() {
+  if (!_deferredInstallPrompt) return;
+  _deferredInstallPrompt.prompt();
+  const result = await _deferredInstallPrompt.userChoice;
+  _deferredInstallPrompt = null;
+  dismissInstallBanner();
+  if (result.outcome === 'accepted') {
+    showToast('KlusMaatje geïnstalleerd! 🎉');
+  }
+}
+
+function dismissInstallBanner() {
+  _installBannerDismissed = true;
+  localStorage.setItem('klusmaatje_install_dismissed', 'true');
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'none';
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -7592,6 +7720,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     showAuthScreen();
     document.getElementById('splash-screen')?.remove();
   }
+
+  // Toon iOS install banner na 3 seconden (als niet al geïnstalleerd)
+  setTimeout(() => {
+    if (isIOS() && !isStandalone() && !_deferredInstallPrompt) {
+      showInstallBanner('ios');
+    }
+  }, 3000);
 
   sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
