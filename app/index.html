@@ -2200,6 +2200,10 @@ async function handleSignOut() {
   _settingsCache = null;
   _projectsListCache = null;
   _subscriptionCache = null;
+  // Timer opruimen bij logout
+  setTimerData(null);
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  stopTimerTick();
   AppState.currentProjectData = null;
   AppState.currentProjectId = null;
   removeExpiredOverlay();
@@ -2675,9 +2679,13 @@ const AppState = {
 
 const NAV_SCREENS = ['home', 'projects', 'planning', 'btw', 'settings'];
 
+let _navigating = false;
 async function showScreen(name, projectId = null) {
   // Auth guard: blokkeer alle navigatie behalve auth als niet ingelogd
   if (!currentUser && name !== 'auth') return;
+  if (_navigating) return;
+  _navigating = true;
+  try {
 
   AppState.prevScreen = AppState.currentScreen;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -2731,6 +2739,9 @@ async function showScreen(name, projectId = null) {
     const exportBtn = document.querySelector('#screen-btw .header .btn-icon');
     if (exportBtn) exportBtn.style.color = '';
     await renderBTWOverzicht();
+  }
+  } finally {
+    _navigating = false;
   }
 }
 
@@ -3707,6 +3718,8 @@ async function submitNewProject() {
   const naam = document.getElementById('m-naam')?.value.trim();
   const klantNaam = document.getElementById('m-klant')?.value.trim();
   if (!naam) { showToast('Vul een projectnaam in'); return; }
+  if (naam.length > 200) { showToast('Projectnaam te lang (max 200 tekens)'); return; }
+  if (klantNaam && klantNaam.length > 200) { showToast('Klantnaam te lang (max 200 tekens)'); return; }
   const allProjects = await loadProjects();
   const actieveProjecten = allProjects.filter(p => p.status !== 'afgerond').length;
   if (actieveProjecten >= getCurrentPlan().maxProjecten) { showUpgradeModal('projecten'); return; }
@@ -5619,7 +5632,7 @@ function logError(context, error) {
 }
 
 function escHtml(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 function localDateStr(d) {
