@@ -3224,7 +3224,7 @@ async function renderRitten(p) {
   const totalKm = ritten.reduce((s, r) => s + (parseFloat(r.km) || 0), 0);
   const totalBedrag = totalKm * kmVergoeding;
   if (totalKmEl) totalKmEl.textContent = totalKm + ' km';
-  if (totalBedragEl) totalBedragEl.textContent = '€ ' + fmtEuro(totalBedrag) + ' (à € ' + fmtEuro(kmVergoeding) + '/km)';
+  if (totalBedragEl) totalBedragEl.textContent = fmtEuro(totalBedrag) + ' (à ' + fmtEuro(kmVergoeding) + '/km)';
   if (!ritten.length) { el.innerHTML = renderEmptyState('Nog geen ritten geregistreerd.'); return; }
   const sorted = [...ritten].sort((a, b) => new Date(b.datum) - new Date(a.datum));
   el.innerHTML = sorted.map(r => {
@@ -3233,7 +3233,7 @@ async function renderRitten(p) {
     <div class="item-row" style="cursor:pointer" onclick="openEditRit('${r.id}')">
       <div class="item-row-info">
         <div class="item-row-title">${parseFloat(r.km) || 0} km${r.omschrijving ? ' — ' + escHtml(r.omschrijving) : ''}${route ? ' <span style="color:var(--muted);font-size:13px">('+escHtml(route)+')</span>' : ''}</div>
-        <div class="item-row-sub">${fmtDate(r.datum)} · € ${fmtEuro((parseFloat(r.km) || 0) * kmVergoeding)}</div>
+        <div class="item-row-sub">${fmtDate(r.datum)} · ${fmtEuro((parseFloat(r.km) || 0) * kmVergoeding)}</div>
       </div>
       <button class="item-row-action" onclick="event.stopPropagation();deleteItem('ritten', '${r.id}')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -4371,7 +4371,7 @@ const PDF_COLORS = {
 };
 
 function fmtEuro(num) {
-  return parseFloat(num || 0).toFixed(2).replace('.', ',');
+  return '\u20AC\u00A0' + parseFloat(num || 0).toFixed(2).replace('.', ',');
 }
 
 function buildPdfHeader(doc, type, settings, project, nummer, datum, extra) {
@@ -4476,13 +4476,13 @@ function buildPdfTotals(doc, y, subtotaal, btwPct) {
   doc.setTextColor(...muted);
   doc.text('Subtotaal excl. BTW:', 120, y);
   doc.setTextColor(...navy);
-  doc.text('€ ' + fmtEuro(subtotaal), rm, y, { align: 'right' });
+  doc.text(fmtEuro(subtotaal), rm, y, { align: 'right' });
   y += 5.5;
 
   doc.setTextColor(...muted);
   doc.text('BTW (' + btwPct + '%): ', 120, y);
   doc.setTextColor(...navy);
-  doc.text('€ ' + fmtEuro(btwBedrag), rm, y, { align: 'right' });
+  doc.text(fmtEuro(btwBedrag), rm, y, { align: 'right' });
   y += 5;
 
   doc.setDrawColor(...orange);
@@ -4496,7 +4496,7 @@ function buildPdfTotals(doc, y, subtotaal, btwPct) {
   doc.setFontSize(11);
   doc.setTextColor(255, 255, 255);
   doc.text('TOTAAL incl. BTW:', 120, y + 5);
-  doc.text('€ ' + fmtEuro(totaal), rm - 1, y + 5, { align: 'right' });
+  doc.text(fmtEuro(totaal), rm - 1, y + 5, { align: 'right' });
 
   return { y: y + 16, btwBedrag, totaal };
 }
@@ -4639,8 +4639,8 @@ async function generateOfferte(force = false) {
     doc.setTextColor(...navy);
     doc.text('Arbeidskosten', lm + 3, y + 4.3);
     doc.text(totalU + ' uur', 118, y + 4.3);
-    doc.text('€ ' + fmtEuro(uurtarief), 140, y + 4.3);
-    doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
+    doc.text(fmtEuro(uurtarief), 140, y + 4.3);
+    doc.text(fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
     y += 6.5;
     doc.setDrawColor(...light);
     doc.setLineWidth(0.2);
@@ -4665,8 +4665,8 @@ async function generateOfferte(force = false) {
       doc.text((matNaamOff.length > 38 ? matNaamOff.substring(0, 36) + '...' : matNaamOff), lm + 3, y + 4.3);
       if (m.hoeveelheid) doc.text(sanitizePdfText(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : '')), 118, y + 4.3);
       if (prijs > 0) {
-        doc.text('€ ' + fmtEuro(prijs), 140, y + 4.3);
-        doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
+        doc.text(fmtEuro(prijs), 140, y + 4.3);
+        doc.text(fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
       } else {
         doc.setTextColor(...muted);
         doc.text('n.t.b.', 140, y + 4.3);
@@ -4758,7 +4758,7 @@ async function generateOfferte(force = false) {
   window._pendingSharePdf = doc.output('blob');
   window._pendingShareFilename = 'Offerte-' + nummer + '.pdf';
   doc.save('Offerte-' + nummer + '.pdf');
-  const waText = `Offerte ${nummer}\nProject: ${p.naam}\nKlant: ${p.klant?.naam || '-'}\nTotaal incl. BTW: €\u00a0${fmtEuro(totaal)}\nGeldig tot: ${geldigStr}`;
+  const waText = `Offerte ${nummer}\nProject: ${p.naam}\nKlant: ${p.klant?.naam || '-'}\nTotaal incl. BTW: ${fmtEuro(totaal)}\nGeldig tot: ${geldigStr}`;
   showShareModal(nummer, waText, p.klant?.naam || '', p.klant?.telefoon || '');
 }
 
@@ -4838,8 +4838,8 @@ async function generateFactuur(force = false) {
       doc.setTextColor(...muted);
       doc.text(new Date(u.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }), 100, y + 4.3);
       doc.setTextColor(...navy);
-      doc.text(u.uren + ' uur × € ' + fmtEuro(uurtarief), 126, y + 4.3);
-      doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
+      doc.text(u.uren + ' uur \u00D7 ' + fmtEuro(uurtarief), 126, y + 4.3);
+      doc.text(fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
       y += 6.5;
       doc.setDrawColor(...light);
       doc.setLineWidth(0.2);
@@ -4876,7 +4876,7 @@ async function generateFactuur(force = false) {
       doc.setTextColor(...muted);
       if (m.hoeveelheid) doc.text(sanitizePdfText(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : '')), 126, y + 4.3);
       doc.setTextColor(...navy);
-      doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
+      doc.text(fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
       y += 6.5;
       doc.setDrawColor(...light);
       doc.line(lm, y, rm, y);
@@ -4927,8 +4927,8 @@ async function generateFactuur(force = false) {
       doc.setTextColor(...muted);
       doc.text(new Date(r.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }), 100, y + 4.3);
       doc.setTextColor(...navy);
-      doc.text(km + ' km × €' + fmtEuro(kmVergoeding), 126, y + 4.3);
-      doc.text('€ ' + fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
+      doc.text(km + ' km \u00D7 ' + fmtEuro(kmVergoeding), 126, y + 4.3);
+      doc.text(fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
       y += rowH;
       doc.setDrawColor(...light);
       doc.setLineWidth(0.2);
@@ -5014,7 +5014,7 @@ async function generateFactuur(force = false) {
   window._pendingSharePdf = doc.output('blob');
   window._pendingShareFilename = 'Factuur-' + nummer + '.pdf';
   doc.save('Factuur-' + nummer + '.pdf');
-  const waText = `Factuur ${nummer}\nProject: ${p.naam}\nKlant: ${p.klant?.naam || '-'}\nTotaal incl. BTW: €\u00a0${fmtEuro(totaal)}\nBetalingstermijn: ${termijn} dagen (voor ${vervalStr})\nIBAN: ${settings.bankrekening || '-'}`;
+  const waText = `Factuur ${nummer}\nProject: ${p.naam}\nKlant: ${p.klant?.naam || '-'}\nTotaal incl. BTW: ${fmtEuro(totaal)}\nBetalingstermijn: ${termijn} dagen (voor ${vervalStr})\nIBAN: ${settings.bankrekening || '-'}`;
   showShareModal(nummer, waText, p.klant?.naam || '', p.klant?.telefoon || '');
 }
 
@@ -5712,10 +5712,10 @@ async function renderDagstartScherm() {
   if (weekUren > 0 || openFacturenAantal > 0) {
     if (weekUren > 0) {
       const weekUrenStr = weekUren % 1 === 0 ? weekUren : weekUren.toFixed(1);
-      welkomst += 'Deze week: ' + weekUrenStr + ' uur gedraaid (€' + fmtEuro(weekBedrag) + ').\n';
+      welkomst += 'Deze week: ' + weekUrenStr + ' uur gedraaid (' + fmtEuro(weekBedrag) + ').\n';
     }
     if (openFacturenAantal > 0) {
-      welkomst += openFacturenAantal + ' openstaande ' + (openFacturenAantal === 1 ? 'factuur' : 'facturen') + ' (€' + fmtEuro(openFacturenBedrag) + ').\n';
+      welkomst += openFacturenAantal + ' openstaande ' + (openFacturenAantal === 1 ? 'factuur' : 'facturen') + ' (' + fmtEuro(openFacturenBedrag) + ').\n';
     }
     welkomst += '\nWat kan ik voor je doen?';
   } else {
@@ -6194,44 +6194,39 @@ function showShareModal(nummer, whatsappText, klantNaam = '', klantTelefoon = ''
 
   // Als Web Share beschikbaar is: primaire knop die PDF meestuurt
   const primaryShareHtml = shareFilesSupported
-    ? '<button class="btn btn-primary btn-full" onclick="shareWithPdfAttached()" style="margin-bottom:16px">' +
-      '📧 Verstuur ' + escHtml(docType) + ' via e-mail' +
+    ? '<button class="btn btn-full" onclick="shareWithPdfAttached()" style="background:var(--navy);color:#fff;margin-bottom:8px">' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:6px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>' +
+      'Verstuur ' + escHtml(docType) + ' via e-mail' +
       '</button>'
     : '';
 
-  // E-mail knoppen — subtiel design, geen felle kleuren
-  // Als Web Share werkt: toon deze als alternatief. Als niet: toon als primair.
-  const emailSectionLabel = shareFilesSupported
-    ? '<div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Of open handmatig</div>'
-    : '<div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Verstuur via e-mail</div>';
-
   const bijlageTip = shareFilesSupported
     ? ''
-    : '<p style="font-size:12px;color:var(--orange);margin-bottom:12px;line-height:1.4">⚠️ Voeg de gedownloade PDF handmatig toe als bijlage</p>';
+    : '<p style="font-size:12px;font-style:italic;color:var(--muted);margin-bottom:12px;line-height:1.4">Voeg de gedownloade PDF handmatig toe als bijlage</p>';
+
+  const btnStyle = 'background:var(--bg);color:var(--text);font-weight:600;border:1.5px solid var(--border)';
+  const mailIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:6px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+  const chatIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:6px"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>';
 
   document.getElementById('modal-title').textContent = escHtml(docType) + ' ' + escHtml(nummer);
   document.getElementById('modal-body').innerHTML =
     '<p style="font-size:14px;color:var(--muted);margin-bottom:12px">PDF is gedownload naar je apparaat.</p>' +
     ontvangerHtml +
-    primaryShareHtml +
-    emailSectionLabel +
-    bijlageTip +
-    '<div style="display:flex;gap:8px;margin-bottom:16px">' +
-      '<button class="btn btn-full" onclick="shareViaGmail()" style="flex:1;background:var(--card);border:1.5px solid var(--border);color:var(--text);font-weight:600">' +
-        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>' +
-        'Gmail</button>' +
-      '<button class="btn btn-full" onclick="shareViaOutlook()" style="flex:1;background:var(--card);border:1.5px solid var(--border);color:var(--text);font-weight:600">' +
-        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>' +
-        'Outlook</button>' +
+    '<div style="display:flex;flex-direction:column;gap:8px">' +
+      primaryShareHtml +
+      bijlageTip +
+      '<button class="btn btn-full" onclick="shareViaGmail()" style="' + btnStyle + '">' +
+        mailIcon + 'Open in Gmail</button>' +
+      '<button class="btn btn-full" onclick="shareViaOutlook()" style="' + btnStyle + '">' +
+        mailIcon + 'Open in Outlook</button>' +
+      '<button class="btn btn-full" onclick="doWhatsAppShare()" style="' + btnStyle + '">' +
+        chatIcon + 'Deel via WhatsApp</button>' +
+      '<button class="btn btn-full" onclick="copyShareText()" style="' + btnStyle + '">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:6px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>' +
+        'Kopieer tekst</button>' +
     '</div>' +
-    '<button class="btn btn-full" onclick="doWhatsAppShare()" style="background:#25D366;color:#fff;margin-bottom:8px">' +
-      '📤 Deel via WhatsApp' +
-    '</button>' +
-    '<div style="display:flex;gap:8px">' +
-      '<button class="btn btn-full" onclick="copyShareText()" style="flex:1;background:var(--bg);color:var(--muted);font-size:13px">' +
-        '📋 Kopieer tekst</button>' +
-      '<button class="btn btn-full" onclick="closeModal()" style="flex:1;background:var(--bg);color:var(--muted);font-size:13px">' +
-        'Sluiten</button>' +
+    '<div style="text-align:center;margin-top:8px">' +
+      '<button onclick="closeModal()" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:8px 16px">Sluiten</button>' +
     '</div>';
   openModal();
 }
@@ -6476,7 +6471,7 @@ async function renderFinancien(p) {
     const isPos = verschil <= 0;
     nacalcHTML = `<div class="fin-nacalc ${isPos ? 'pos' : 'neg'}">
       <div class="fin-nacalc-label">Nacalculatie vs. offerte ${escHtml(lastOfferte.nummer || '')}</div>
-      <div class="fin-nacalc-value">${isPos ? '✓ ' : '⚠ '}€ ${fmtEuro(Math.abs(verschil))}</div>
+      <div class="fin-nacalc-value">${isPos ? '✓ ' : '⚠ '}${fmtEuro(Math.abs(verschil))}</div>
       <div class="fin-nacalc-sub">${isPos ? 'Onder budget — goed bezig!' : 'Boven offerte — bespreek met klant'}</div>
     </div>`;
   }
@@ -6485,23 +6480,23 @@ async function renderFinancien(p) {
     <div class="fin-grid">
       <div class="fin-card">
         <div class="fin-card-label">Arbeidsomzet</div>
-        <div class="fin-card-value">€ ${fmtEuro(urenOmzet)}</div>
-        <div class="fin-card-sub">${totalUren} uur × € ${fmtEuro(uurtarief)}</div>
+        <div class="fin-card-value">${fmtEuro(urenOmzet)}</div>
+        <div class="fin-card-sub">${totalUren} uur × ${fmtEuro(uurtarief)}</div>
       </div>
       <div class="fin-card">
         <div class="fin-card-label">Materiaalkosten</div>
-        <div class="fin-card-value">€ ${fmtEuro(matKosten)}</div>
+        <div class="fin-card-value">${fmtEuro(matKosten)}</div>
         <div class="fin-card-sub">Incl. bekende prijzen</div>
       </div>
       ${totalKm > 0 ? `<div class="fin-card">
         <div class="fin-card-label">Reiskosten</div>
-        <div class="fin-card-value">€ ${fmtEuro(ritKosten)}</div>
-        <div class="fin-card-sub">${totalKm} km × € ${fmtEuro(kmVergoeding)}</div>
+        <div class="fin-card-value">${fmtEuro(ritKosten)}</div>
+        <div class="fin-card-sub">${totalKm} km × ${fmtEuro(kmVergoeding)}</div>
       </div>` : ''}
       <div class="fin-card">
         <div class="fin-card-label">Totaal excl. BTW</div>
-        <div class="fin-card-value">€ ${fmtEuro(totaalExBTW)}</div>
-        <div class="fin-card-sub">BTW: € ${fmtEuro(totaalExBTW * btwPct / 100)}</div>
+        <div class="fin-card-value">${fmtEuro(totaalExBTW)}</div>
+        <div class="fin-card-sub">BTW: ${fmtEuro(totaalExBTW * btwPct / 100)}</div>
       </div>
       <div class="fin-card">
         <div class="fin-card-label">Winstmarge</div>
@@ -6511,8 +6506,8 @@ async function renderFinancien(p) {
     </div>
     ${hasMeerwerkFin ? `<div class="fin-card" style="border-left:3px solid var(--orange);grid-column:1/-1">
         <div class="fin-card-label" style="color:var(--orange)">Meerwerk totaal</div>
-        <div class="fin-card-value">€ ${fmtEuro(mwTotaal)}</div>
-        <div class="fin-card-sub">${mwUrenTotal > 0 ? mwUrenTotal + ' uur (€ ' + fmtEuro(mwUrenOmzet) + ')' : ''}${mwUrenTotal > 0 && mwMatKosten > 0 ? ' + ' : ''}${mwMatKosten > 0 ? 'materiaal € ' + fmtEuro(mwMatKosten) : ''}</div>
+        <div class="fin-card-value">${fmtEuro(mwTotaal)}</div>
+        <div class="fin-card-sub">${mwUrenTotal > 0 ? mwUrenTotal + ' uur (' + fmtEuro(mwUrenOmzet) + ')' : ''}${mwUrenTotal > 0 && mwMatKosten > 0 ? ' + ' : ''}${mwMatKosten > 0 ? 'materiaal ' + fmtEuro(mwMatKosten) : ''}</div>
       </div>` : ''}
     ${nacalcHTML}
     ${totaalExBTW === 0 && !hasMeerwerkFin ? '<p style="color:var(--muted);font-size:14px;margin-top:12px">Voeg uren en materialen toe voor een berekening.</p>' : ''}`;
@@ -6540,7 +6535,7 @@ function renderDocs(p) {
         return `<div class="docs-item" style="flex-direction:column;align-items:stretch;gap:8px">
           <div class="docs-item-info">
             <div class="docs-item-num">${escHtml(o.nummer || 'Offerte')}</div>
-            <div class="docs-item-sub">${datum} · € ${fmtEuro(o.totaal || o.bedrag || 0)} · <span style="color:${statusClr};font-weight:600">${escHtml(statusLbl)}</span></div>
+            <div class="docs-item-sub">${datum} · ${fmtEuro(o.totaal || o.bedrag || 0)} · <span style="color:${statusClr};font-weight:600">${escHtml(statusLbl)}</span></div>
           </div>
           <div style="display:flex;gap:8px">
             <button class="btn btn-sm btn-secondary" style="flex:1" onclick="cycleOfferteStatus('${escHtml(p.id)}','${escHtml(o.id)}')">Status wijzigen</button>
@@ -6561,7 +6556,7 @@ function renderDocs(p) {
         return `<div class="docs-item" style="flex-direction:column;align-items:stretch;gap:8px">
           <div class="docs-item-info">
             <div class="docs-item-num">${escHtml(f.nummer)}</div>
-            <div class="docs-item-sub">${datum} · € ${fmtEuro(f.totaal || f.bedrag || 0)} · <span style="color:${statusClr};font-weight:600">${escHtml(statusLbl)}</span></div>
+            <div class="docs-item-sub">${datum} · ${fmtEuro(f.totaal || f.bedrag || 0)} · <span style="color:${statusClr};font-weight:600">${escHtml(statusLbl)}</span></div>
           </div>
           <div style="display:flex;gap:8px">
             <button class="btn btn-sm btn-secondary" style="flex:1" onclick="toggleFactuurStatus('${escHtml(p.id)}','${escHtml(f.id)}')">${isOpen ? 'Markeer betaald' : 'Heropen'}</button>
@@ -6633,7 +6628,7 @@ async function generateHerinnering(projectId, factuurId) {
     `Hierbij attenderen wij u vriendelijk op het volgende openstaande bedrag:`,
     '',
     `Factuurnummer : ${sanitizePdfText(f.nummer)}`,
-    `Factuurbedrag : € ${fmtEuro(f.totaal || f.bedrag || 0)} incl. BTW`,
+    `Factuurbedrag : ${fmtEuro(f.totaal || f.bedrag || 0)} incl. BTW`,
     `Vervaldatum   : ${vervalStr}`,
     '',
     `Wij verzoeken u vriendelijk het openstaande bedrag binnen 7 dagen over te`,
@@ -6912,7 +6907,7 @@ async function exportBoekhouderPakket() {
       doc.rect(lm, y, 170, 6.5, 'F');
       doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...navy);
       doc.text(r[0], lm + 3, y + 4.3);
-      doc.text('\u20AC ' + fmtEuro(r[1]), rm - 1, y + 4.3, { align: 'right' });
+      doc.text(fmtEuro(r[1]), rm - 1, y + 4.3, { align: 'right' });
       y += 6.5;
       doc.setDrawColor(...light); doc.setLineWidth(0.2); doc.line(lm, y, rm, y);
     });
@@ -6922,7 +6917,7 @@ async function exportBoekhouderPakket() {
     doc.rect(118, y, rm - 116, 8, 'F');
     doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
     doc.text('TOTAAL incl. BTW:', 120, y + 5.5);
-    doc.text('\u20AC ' + fmtEuro(inv.totaal), rm - 1, y + 5.5, { align: 'right' });
+    doc.text(fmtEuro(inv.totaal), rm - 1, y + 5.5, { align: 'right' });
     y += 16;
 
     // Betaalgegevens
@@ -6998,10 +6993,10 @@ async function exportBoekhouderPakket() {
     overzichtDoc.text((inv.nummer || '-').substring(0, 16), lm + 2, oy + 4.3);
     overzichtDoc.text(inv.datum || '-', lm + 30, oy + 4.3);
     overzichtDoc.text((inv.klantNaam || '-').substring(0, 22), lm + 56, oy + 4.3);
-    overzichtDoc.text('\u20AC ' + fmtEuro(inv.bedrag), lm + 104, oy + 4.3);
-    overzichtDoc.text('\u20AC ' + fmtEuro(inv.btw), lm + 126, oy + 4.3);
+    overzichtDoc.text(fmtEuro(inv.bedrag), lm + 104, oy + 4.3);
+    overzichtDoc.text(fmtEuro(inv.btw), lm + 126, oy + 4.3);
     overzichtDoc.setFont('helvetica', 'bold');
-    overzichtDoc.text('\u20AC ' + fmtEuro(inv.totaal), lm + 143, oy + 4.3);
+    overzichtDoc.text(fmtEuro(inv.totaal), lm + 143, oy + 4.3);
     overzichtDoc.setFont('helvetica', 'normal');
     overzichtDoc.setTextColor(inv.status === 'betaald' ? 22 : 234, inv.status === 'betaald' ? 163 : 179, inv.status === 'betaald' ? 74 : 8);
     overzichtDoc.text(inv.status === 'betaald' ? 'Betaald' : 'Open', lm + 163, oy + 4.3);
@@ -7024,7 +7019,7 @@ async function exportBoekhouderPakket() {
     overzichtDoc.setFont('helvetica', 'normal'); overzichtDoc.setFontSize(9); overzichtDoc.setTextColor(...muted);
     overzichtDoc.text(label, lm + 104, oy);
     overzichtDoc.setFont('helvetica', 'bold'); overzichtDoc.setTextColor(...navy);
-    overzichtDoc.text('\u20AC ' + fmtEuro(val), rm - 1, oy, { align: 'right' });
+    overzichtDoc.text(fmtEuro(val), rm - 1, oy, { align: 'right' });
     oy += 5.5;
   });
 
@@ -7033,7 +7028,7 @@ async function exportBoekhouderPakket() {
   overzichtDoc.rect(lm + 100, oy, rm - lm - 100, 8, 'F');
   overzichtDoc.setFont('helvetica', 'bold'); overzichtDoc.setFontSize(10); overzichtDoc.setTextColor(255, 255, 255);
   overzichtDoc.text('Totaal incl. BTW:', lm + 102, oy + 5.5);
-  overzichtDoc.text('\u20AC ' + fmtEuro(totInclBTW), rm - 1, oy + 5.5, { align: 'right' });
+  overzichtDoc.text(fmtEuro(totInclBTW), rm - 1, oy + 5.5, { align: 'right' });
   oy += 16;
 
   // Status samenvatting
@@ -7226,8 +7221,8 @@ async function renderBTWOverzicht() {
   const summaryHTML = jaarExBTW > 0 ? `
     <div class="btw-year-summary">
       <div class="btw-year-label">Totaal netto BTW-afdracht ${jaar}</div>
-      <div class="btw-year-value">${jaarTotaalBTW < 0 ? '− ' : ''}€ ${fmtEuro(Math.abs(jaarTotaalBTW))}</div>
-      <div class="btw-year-sub">Over ${jaarAantalFact} ${jaarAantalFact === 1 ? 'factuur' : 'facturen'} · Excl. BTW: € ${fmtEuro(jaarExBTW)}</div>
+      <div class="btw-year-value">${jaarTotaalBTW < 0 ? '− ' : ''}${fmtEuro(Math.abs(jaarTotaalBTW))}</div>
+      <div class="btw-year-sub">Over ${jaarAantalFact} ${jaarAantalFact === 1 ? 'factuur' : 'facturen'} · Excl. BTW: ${fmtEuro(jaarExBTW)}</div>
     </div>` : '';
 
   el.innerHTML = summaryHTML + _btwKwartaalData.map(renderBTWKwartaalCard).join('') +
@@ -7240,7 +7235,7 @@ async function renderBTWOverzicht() {
 function renderBTWKwartaalCard(kw) {
   const isOpen   = _btwKwartaalOpen[kw.q];
   const heeftData = kw.aantalFacturen > 0 || kw.totaalMatKosten > 0;
-  const nettoBTWStr = (kw.nettoBTW < 0 ? '− ' : '') + '€ ' + fmtEuro(Math.abs(kw.nettoBTW));
+  const nettoBTWStr = (kw.nettoBTW < 0 ? '− ' : '') + fmtEuro(Math.abs(kw.nettoBTW));
   const nettoBTWColor = kw.nettoBTW < 0 ? 'var(--green)' : 'var(--orange)';
 
   return `<div class="btw-card">
@@ -7259,20 +7254,20 @@ function renderBTWKwartaalCard(kw) {
       <div style="margin-top:4px">
         <div class="btw-row">
           <span class="btw-row-label">Gefactureerd excl. BTW</span>
-          <span class="btw-row-value">€ ${fmtEuro(kw.totaalExBTW)}</span>
+          <span class="btw-row-value">${fmtEuro(kw.totaalExBTW)}</span>
         </div>
         <div class="btw-row" style="margin-bottom:8px">
           <span class="btw-row-label">BTW ontvangen (${kw.btwPct}%)</span>
-          <span class="btw-row-value" style="color:var(--red)">€ ${fmtEuro(kw.totaalBTWOntvangen)}</span>
+          <span class="btw-row-value" style="color:var(--red)">${fmtEuro(kw.totaalBTWOntvangen)}</span>
         </div>
         <div class="btw-divider"></div>
         <div class="btw-row" style="margin-top:8px">
           <span class="btw-row-label">Materiaalkosten geregistreerd</span>
-          <span class="btw-row-value">€ ${fmtEuro(kw.totaalMatKosten)}</span>
+          <span class="btw-row-value">${fmtEuro(kw.totaalMatKosten)}</span>
         </div>
         <div class="btw-row" style="margin-bottom:4px">
           <span class="btw-row-label">Voorbelasting (${kw.btwPct}% over materialen)</span>
-          <span class="btw-row-value" style="color:var(--green)">− € ${fmtEuro(kw.voorbelasting)}</span>
+          <span class="btw-row-value" style="color:var(--green)">− ${fmtEuro(kw.voorbelasting)}</span>
         </div>
       </div>` : '<p class="btw-empty">Geen facturen of materialen in dit kwartaal.</p>'}
     </div>
@@ -7353,11 +7348,11 @@ async function exportBTWKwartaalPDF(q) {
 
   // Data rijen
   const tableRows = [
-    { label: 'Gefactureerd excl. BTW (' + kw.aantalFacturen + ' facturen)', value: '€ ' + fmtEuro(kw.totaalExBTW), even: true,  color: navy },
-    { label: 'BTW ontvangen (' + kw.btwPct + '%)',                           value: '€ ' + fmtEuro(kw.totaalBTWOntvangen), even: false, color: [220, 38, 38] },
+    { label: 'Gefactureerd excl. BTW (' + kw.aantalFacturen + ' facturen)', value: fmtEuro(kw.totaalExBTW), even: true,  color: navy },
+    { label: 'BTW ontvangen (' + kw.btwPct + '%)',                           value: fmtEuro(kw.totaalBTWOntvangen), even: false, color: [220, 38, 38] },
     null,
-    { label: 'Materiaalkosten geregistreerd',                                value: '€ ' + fmtEuro(kw.totaalMatKosten), even: true,  color: navy },
-    { label: 'Voorbelasting (' + kw.btwPct + '% over materialen)',           value: '− € ' + fmtEuro(kw.voorbelasting), even: false, color: [22, 163, 74] },
+    { label: 'Materiaalkosten geregistreerd',                                value: fmtEuro(kw.totaalMatKosten), even: true,  color: navy },
+    { label: 'Voorbelasting (' + kw.btwPct + '% over materialen)',           value: '− ' + fmtEuro(kw.voorbelasting), even: false, color: [22, 163, 74] },
   ];
 
   tableRows.forEach(row => {
@@ -7381,7 +7376,7 @@ async function exportBTWKwartaalPDF(q) {
   doc.rect(lm, y, 170, 12, 'F');
   doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
   doc.text('NETTO BTW-AFDRACHT', lm + 4, y + 8);
-  const nettoBTWTxt = (kw.nettoBTW < 0 ? '− ' : '') + '€ ' + fmtEuro(Math.abs(kw.nettoBTW));
+  const nettoBTWTxt = (kw.nettoBTW < 0 ? '− ' : '') + fmtEuro(Math.abs(kw.nettoBTW));
   doc.setFontSize(12);
   doc.text(nettoBTWTxt, rm - 1, y + 8, { align: 'right' });
   y += 20;
