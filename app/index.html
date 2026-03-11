@@ -1851,7 +1851,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   plan TEXT NOT NULL DEFAULT 'trial',
   trial_start TIMESTAMPTZ DEFAULT now(),
-  trial_end TIMESTAMPTZ DEFAULT (now() + interval '7 days'),
+  trial_end TIMESTAMPTZ DEFAULT (now() + interval '14 days'),
   active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now(),
@@ -1907,7 +1907,7 @@ let _subscriptionCache = null;
 const PLANS = {
   trial: {
     naam: 'Probeer Gratis',
-    dagen: 7,
+    dagen: 14,
     maxProjecten: 3,
     maxFotosPerProject: 20,
     voiceAI: true,
@@ -1971,7 +1971,7 @@ async function loadSubscription() {
   try {
     let { data, error } = await sb.from('subscriptions').select('*').eq('user_id', currentUser.id).single();
     if (error || !data) {
-      const trialEnd = new Date(Date.now() + 7 * 86400000).toISOString();
+      const trialEnd = new Date(Date.now() + 14 * 86400000).toISOString();
       const { data: inserted, error: insertErr } = await sb.from('subscriptions').insert({
         user_id: currentUser.id,
         plan: 'trial',
@@ -1993,7 +1993,7 @@ async function loadSubscription() {
     return _subscriptionCache;
   } catch (err) {
     console.error('loadSubscription error', err);
-    _subscriptionCache = { plan: 'trial', trialEnd: new Date(Date.now() + 7 * 86400000).toISOString(), active: true, trialDaysLeft: 7 };
+    _subscriptionCache = { plan: 'trial', trialEnd: new Date(Date.now() + 14 * 86400000).toISOString(), active: true, trialDaysLeft: 14 };
     return _subscriptionCache;
   }
 }
