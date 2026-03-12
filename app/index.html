@@ -387,9 +387,38 @@
       transition: background 0.15s;
     }
     .mic-btn-compact:active { opacity: 0.8; }
-    .mic-btn-compact.recording { background: var(--red); animation: pulse 1.2s infinite; will-change: transform, opacity; }
-    .mic-btn-compact.processing { background: var(--yellow); animation: spin-fade 1s ease-in-out infinite; }
     .mic-btn-compact svg { width: 20px; height: 20px; }
+    .mic-btn-compact.recording {
+      background: var(--red);
+      animation: pulse 1.2s infinite;
+      width: auto;
+      border-radius: 22px;
+      padding: 0 14px;
+      gap: 6px;
+    }
+    .mic-btn-compact.processing {
+      background: var(--yellow);
+      animation: spin-fade 1s ease-in-out infinite;
+      width: auto;
+      border-radius: 22px;
+      padding: 0 14px;
+      gap: 6px;
+    }
+    .mic-btn-compact .mic-label {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      display: none;
+    }
+    .mic-btn-compact.recording .mic-label,
+    .mic-btn-compact.processing .mic-label {
+      display: inline;
+    }
+    .mic-btn-compact.recording svg,
+    .mic-btn-compact.processing svg {
+      width: 16px;
+      height: 16px;
+    }
     .mic-btn-locked {
       width: 44px;
       height: 44px;
@@ -1408,10 +1437,19 @@
   <!-- Fixed input area — always visible at bottom -->
   <div class="home-input-area">
     <button class="mic-btn-compact" id="mic-btn-compact" onclick="toggleRecording()" aria-label="Spreek in">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg class="mic-icon-idle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
         <path d="M19 10v2a7 7 0 01-14 0v-2"/>
       </svg>
+      <svg class="mic-icon-stop" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:none">
+        <rect x="6" y="6" width="12" height="12" rx="2"/>
+      </svg>
+      <svg class="mic-icon-loading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:none">
+        <circle cx="12" cy="12" r="10" stroke-dasharray="31.4 31.4" stroke-linecap="round">
+          <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+      <span class="mic-label"></span>
     </button>
     <textarea class="form-input" id="text-input" rows="1"
       placeholder="Typ je opdracht..."
@@ -2352,8 +2390,7 @@ async function handleSignOut() {
   _subscriptionCache = null;
   // Timer opruimen bij logout
   setTimerData(null);
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-  stopTimerTick();
+  clearAllTimerIntervals();
   AppState.currentProjectData = null;
   AppState.currentProjectId = null;
   const chatBubbles = document.getElementById('chat-bubbles');
@@ -2383,11 +2420,10 @@ function showAuthScreen() {
 // ===================================================
 
 function showNotification(text) {
-  console.log('[KlusMaatje] showNotification aangeroepen met tekst:', text);
   if (!text) return;
   const bar = document.getElementById('ai-notification-bar');
   const textEl = document.getElementById('ai-notification-text');
-  if (!bar || !textEl) { console.warn('[KlusMaatje] notification bar elementen niet gevonden'); return; }
+  if (!bar || !textEl) return;
   textEl.textContent = text;
   bar.classList.add('visible');
   clearTimeout(window._notifHideTimer);
@@ -2555,14 +2591,12 @@ async function loadProjects() {
       notities: (r.notities || []).map(n => ({ id: n.id, tekst: n.tekst, datum: n.datum, tijd: n.tijd, aangemaakt: n.aangemaakt }))
     }));
     return _projectsListCache;
-  } catch (e) { logError('loadProjects', e); return []; }
+  } catch (e) { logError('loadProjects', e); showToast('Kon projecten niet laden. Controleer je verbinding.'); return []; }
 }
 
 async function fetchProjectWithData(projectId) {
-  console.log('[debug] fetchProjectWithData aangeroepen met projectId:', projectId);
   try {
     const { data, error } = await sb.rpc('get_project_with_data', { p_id: projectId });
-    console.log('[debug] RPC get_project_with_data resultaat:', { data, error });
     if (error) throw error;
     if (!data) return null;
     return rowToProject(data, {
@@ -2570,7 +2604,7 @@ async function fetchProjectWithData(projectId) {
       ritten: data.ritten, notities: data.notities, offertes: data.offertes,
       facturen: data.facturen, fotos: data.fotos
     });
-  } catch (e) { logError('fetchProjectWithData', e); return null; }
+  } catch (e) { logError('fetchProjectWithData', e); showToast('Kon projectgegevens niet laden'); return null; }
 }
 
 async function addProject(naam, klant = {}) {
@@ -2612,13 +2646,15 @@ async function addTaakDB(projectId, taak) {
     omschrijving: taak.omschrijving, deadline: taak.deadline || null, voltooid: false, type, tijd: taak.tijd || null, meerwerk
   }).select().single();
   if (error) throw error;
+  _projectsListCache = null;
   return data;
 }
 async function updateTaakDB(id, updates) {
   const { error } = await sb.from('taken').update(updates).eq('id', id);
   if (error) throw error;
+  _projectsListCache = null;
 }
-async function deleteTaakDB(id) { await sb.from('taken').delete().eq('id', id); }
+async function deleteTaakDB(id) { await sb.from('taken').delete().eq('id', id); _projectsListCache = null; }
 
 async function addMateriaalDB(projectId, m) {
   const meerwerk = m.meerwerk || false;
@@ -2628,9 +2664,10 @@ async function addMateriaalDB(projectId, m) {
     eenheid: m.eenheid || '', prijs: m.prijs || null, meerwerk
   }).select().single();
   if (error) throw error;
+  _projectsListCache = null;
   return data;
 }
-async function deleteMateriaalDB(id) { await sb.from('materialen').delete().eq('id', id); }
+async function deleteMateriaalDB(id) { await sb.from('materialen').delete().eq('id', id); _projectsListCache = null; }
 
 async function addUrenDB(projectId, u) {
   const meerwerk = u.meerwerk || false;
@@ -2639,9 +2676,10 @@ async function addUrenDB(projectId, u) {
     datum: u.datum, uren: u.uren, omschrijving: u.omschrijving || '', meerwerk
   }).select().single();
   if (error) throw error;
+  _projectsListCache = null;
   return data;
 }
-async function deleteUrenDB(id) { await sb.from('uren').delete().eq('id', id); }
+async function deleteUrenDB(id) { await sb.from('uren').delete().eq('id', id); _projectsListCache = null; }
 
 async function updateUrenDB(id, updates) {
   const row = {};
@@ -2650,6 +2688,7 @@ async function updateUrenDB(id, updates) {
   if (updates.omschrijving !== undefined) row.omschrijving = updates.omschrijving;
   const { error } = await sb.from('uren').update(row).eq('id', id);
   if (error) throw error;
+  _projectsListCache = null;
 }
 
 async function addRitDB(projectId, r) {
@@ -2659,9 +2698,10 @@ async function addRitDB(projectId, r) {
     vanuit: r.vanuit || null, bestemming: r.bestemming || null
   }).select().single();
   if (error) throw error;
+  _projectsListCache = null;
   return data;
 }
-async function deleteRitDB(id) { await sb.from('ritten').delete().eq('id', id); }
+async function deleteRitDB(id) { await sb.from('ritten').delete().eq('id', id); _projectsListCache = null; }
 
 async function addNotitieDB(projectId, n) {
   const { data, error } = await sb.from('notities').insert({
@@ -2669,9 +2709,10 @@ async function addNotitieDB(projectId, n) {
     tekst: n.tekst, datum: n.datum || null, tijd: n.tijd || null
   }).select().single();
   if (error) throw error;
+  _projectsListCache = null;
   return data;
 }
-async function deleteNotitieDB(id) { await sb.from('notities').delete().eq('id', id); }
+async function deleteNotitieDB(id) { await sb.from('notities').delete().eq('id', id); _projectsListCache = null; }
 
 async function updateProjectFields(projectId, row) {
   const { error } = await sb.from('projects').update(row).eq('id', projectId);
@@ -3038,7 +3079,7 @@ let currentTab = 'taken';
 
 async function renderProjectDetail(projectId) {
   AppState.currentProjectData = await fetchProjectWithData(projectId);
-  if (!AppState.currentProjectData) { showScreen('projects'); return; }
+  if (!AppState.currentProjectData) { showToast('Project niet gevonden of kon niet worden geladen'); showScreen('projects'); return; }
   const p = AppState.currentProjectData;
   document.getElementById('detail-project-name').textContent = p.naam;
   document.getElementById('detail-client').textContent = p.klant?.naam ? 'Klant: ' + p.klant.naam : 'Geen klant ingevuld';
@@ -3167,16 +3208,16 @@ function renderTaken(p) {
       html += renderEmptyState('Geen open taken.');
     } else {
       html += [...open, ...done].map(t => `
-        <div class="item-row ${t.voltooid ? 'item-done' : ''}" style="cursor:pointer" onclick="openEditTaak('${t.id}')">
-          <button class="checkbox-btn ${t.voltooid ? 'checked' : ''}" onclick="event.stopPropagation();toggleTaak('${t.id}')">
+        <div class="item-row ${t.voltooid ? 'item-done' : ''}" style="cursor:pointer" data-action="open-edit-taak" data-id="${t.id}">
+          <button class="checkbox-btn ${t.voltooid ? 'checked' : ''}" data-action="toggle-taak" data-id="${t.id}">
             ${t.voltooid ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
           </button>
           <div class="item-row-info">
             <div class="item-row-title">${escHtml(t.omschrijving)}${t.meerwerk ? ' <span class="badge-meerwerk">Meerwerk</span>' : ''}</div>
             ${t.deadline ? `<div class="item-row-sub">Deadline: ${fmtDate(t.deadline)}</div>` : ''}
           </div>
-          <button class="btn-meerwerk-toggle ${t.meerwerk ? 'active' : ''}" onclick="event.stopPropagation();toggleMeerwerk('taken', '${t.id}')" title="Meerwerk">M</button>
-          <button class="item-row-action" onclick="event.stopPropagation();deleteItem('taken', '${t.id}')">
+          <button class="btn-meerwerk-toggle ${t.meerwerk ? 'active' : ''}" data-action="toggle-meerwerk-taken" data-id="${t.id}" title="Meerwerk">M</button>
+          <button class="item-row-action" data-action="delete-taak" data-id="${t.id}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
         </div>`).join('');
@@ -3186,13 +3227,13 @@ function renderTaken(p) {
   if (notities.length) {
     html += '<div class="card-header">Notities</div>';
     html += notities.map(n => `
-      <div class="item-row" style="cursor:pointer" onclick="openEditTaak('${n.id}')">
+      <div class="item-row" style="cursor:pointer" data-action="open-edit-taak" data-id="${n.id}">
         <span style="font-size:18px;flex-shrink:0;padding:2px 4px">📝</span>
         <div class="item-row-info">
           <div class="item-row-title">${escHtml(n.omschrijving)}</div>
           ${n.deadline ? `<div class="item-row-sub">${fmtDate(n.deadline)}${n.tijd ? ' om ' + n.tijd : ''}</div>` : ''}
         </div>
-        <button class="item-row-action" onclick="event.stopPropagation();deleteItem('taken', '${n.id}')">
+        <button class="item-row-action" data-action="delete-taak" data-id="${n.id}">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>`).join('');
@@ -3211,7 +3252,7 @@ function openEditTaak(taakId) {
       '<input class="form-input" id="m-edit-omschrijving" type="text" value="' + escHtml(t.omschrijving || '') + '" placeholder="Bijv. Muren schuren"></div>' +
     '<div class="form-group"><label class="form-label">Deadline (optioneel)</label>' +
       '<input class="form-input" id="m-edit-deadline" type="date" value="' + (t.deadline || '') + '"></div>' +
-    '<button class="btn btn-primary btn-full" onclick="saveEditTaak(\'' + taakId + '\')">Opslaan</button>';
+    '<button class="btn btn-primary btn-full" data-action="save-edit-taak" data-id="' + taakId + '">Opslaan</button>';
   openModal();
 }
 
@@ -3219,6 +3260,8 @@ async function saveEditTaak(taakId) {
   const omschrijving = document.getElementById('m-edit-omschrijving')?.value.trim();
   if (!omschrijving) { showToast('Vul een omschrijving in'); return; }
   const deadline = document.getElementById('m-edit-deadline')?.value || null;
+  const _btn = document.querySelector('#modal-body .btn-primary');
+  setButtonLoading(_btn, true);
   try {
     const { error } = await sb.from('taken').update({ omschrijving, deadline }).eq('id', taakId);
     if (error) throw error;
@@ -3227,20 +3270,20 @@ async function saveEditTaak(taakId) {
     renderTaken(AppState.currentProjectData);
     closeModal();
     showToast('Taak bijgewerkt');
-  } catch (err) { logError('saveEditTaak', err); showToast('Fout bij opslaan'); }
+  } catch (err) { logError('saveEditTaak', err); setButtonLoading(_btn, false, 'Opslaan'); showToast('Fout bij opslaan'); }
 }
 
 function renderMaterialen(p) {
   const el = document.getElementById('materialen-list');
   if (!p.materialen.length) { el.innerHTML = renderEmptyState('Nog geen materialen toegevoegd.'); return; }
   el.innerHTML = p.materialen.map(m => `
-    <div class="item-row" style="cursor:pointer" onclick="openEditMateriaal('${m.id}')">
+    <div class="item-row" style="cursor:pointer" data-action="open-edit-materiaal" data-id="${m.id}">
       <div class="item-row-info">
         <div class="item-row-title">${escHtml(m.naam)}${m.meerwerk ? ' <span class="badge-meerwerk">Meerwerk</span>' : ''}</div>
         <div class="item-row-sub">${m.hoeveelheid ? m.hoeveelheid + ' ' + (m.eenheid || '') : ''}${m.prijs ? ' · € ' + m.prijs : ''}</div>
       </div>
-      <button class="btn-meerwerk-toggle ${m.meerwerk ? 'active' : ''}" onclick="event.stopPropagation();toggleMeerwerk('materialen', '${m.id}')" title="Meerwerk">M</button>
-      <button class="item-row-action" onclick="event.stopPropagation();deleteItem('materialen', '${m.id}')">
+      <button class="btn-meerwerk-toggle ${m.meerwerk ? 'active' : ''}" data-action="toggle-meerwerk-materialen" data-id="${m.id}" title="Meerwerk">M</button>
+      <button class="item-row-action" data-action="delete-materiaal" data-id="${m.id}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>`).join('');
@@ -3253,13 +3296,13 @@ function renderUren(p) {
   if (!p.uren.length) { el.innerHTML = renderEmptyState('Nog geen uren geregistreerd.'); return; }
   const sorted = [...p.uren].sort((a, b) => new Date(b.datum) - new Date(a.datum));
   el.innerHTML = sorted.map(u => `
-    <div class="item-row" style="cursor:pointer" onclick="openEditUren('${u.id}')">
+    <div class="item-row" style="cursor:pointer" data-action="open-edit-uren" data-id="${u.id}">
       <div class="item-row-info">
         <div class="item-row-title">${u.uren} uur${u.omschrijving ? ' — ' + escHtml(u.omschrijving) : ''}${u.meerwerk ? ' <span class="badge-meerwerk">Meerwerk</span>' : ''}</div>
         <div class="item-row-sub">${fmtDate(u.datum)}</div>
       </div>
-      <button class="btn-meerwerk-toggle ${u.meerwerk ? 'active' : ''}" onclick="event.stopPropagation();toggleMeerwerk('uren', '${u.id}')" title="Meerwerk">M</button>
-      <button class="item-row-action" onclick="event.stopPropagation();deleteItem('uren', '${u.id}')">
+      <button class="btn-meerwerk-toggle ${u.meerwerk ? 'active' : ''}" data-action="toggle-meerwerk-uren" data-id="${u.id}" title="Meerwerk">M</button>
+      <button class="item-row-action" data-action="delete-uren" data-id="${u.id}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>`).join('');
@@ -3278,7 +3321,7 @@ function openEditUren(urenId) {
     <div class="form-group"><label class="form-label">Omschrijving</label>
       <input class="form-input" id="m-edit-omschrijving" type="text" value="${escHtml(u.omschrijving || '')}"
         placeholder="Bijv. schilderwerk, tegelwerk..."></div>
-    <button class="btn btn-primary btn-full" onclick="saveEditUren('${urenId}')">Opslaan</button>`;
+    <button class="btn btn-primary btn-full" data-action="save-edit-uren" data-id="${urenId}">Opslaan</button>`;
   openModal();
 }
 
@@ -3288,15 +3331,16 @@ async function saveEditUren(urenId) {
   const omschrijving = document.getElementById('m-edit-omschrijving')?.value.trim() || '';
   if (!uren || uren <= 0) { showToast('Vul geldige uren in'); return; }
   if (!datum) { showToast('Vul een datum in'); return; }
+  const _btn = document.querySelector('#modal-body .btn-primary');
+  setButtonLoading(_btn, true);
   try {
     await updateUrenDB(urenId, { uren, datum, omschrijving });
-    // Update lokaal
     const idx = AppState.currentProjectData.uren.findIndex(x => x.id === urenId);
     if (idx !== -1) Object.assign(AppState.currentProjectData.uren[idx], { uren, datum, omschrijving });
     renderUren(AppState.currentProjectData);
     closeModal();
     showToast('Uren bijgewerkt');
-  } catch (err) { logError('submitUrenEdit', err); showToast('Fout bij opslaan'); }
+  } catch (err) { logError('submitUrenEdit', err); setButtonLoading(_btn, false, 'Opslaan'); showToast('Fout bij opslaan'); }
 }
 
 function openEditRit(ritId) {
@@ -3317,7 +3361,7 @@ function openEditRit(ritId) {
     '</div>' +
     '<div class="form-group"><label class="form-label">Omschrijving (optioneel)</label>' +
       '<input class="form-input" id="m-edit-omschrijving" type="text" value="' + escHtml(r.omschrijving || '') + '" placeholder="Bijv. Materialen ophalen"></div>' +
-    '<button class="btn btn-primary btn-full" onclick="saveEditRit(\'' + ritId + '\')">Opslaan</button>';
+    '<button class="btn btn-primary btn-full" data-action="save-edit-rit" data-id="' + ritId + '">Opslaan</button>';
   openModal();
 }
 
@@ -3329,6 +3373,8 @@ async function saveEditRit(ritId) {
   const omschrijving = document.getElementById('m-edit-omschrijving')?.value.trim() || '';
   if (!km || km <= 0) { showToast('Vul geldige km in'); return; }
   if (!datum) { showToast('Vul een datum in'); return; }
+  const _btn = document.querySelector('#modal-body .btn-primary');
+  setButtonLoading(_btn, true);
   try {
     const { error } = await sb.from('ritten').update({ km, datum, vanuit, bestemming, omschrijving }).eq('id', ritId);
     if (error) throw error;
@@ -3337,7 +3383,7 @@ async function saveEditRit(ritId) {
     await renderRitten(AppState.currentProjectData);
     closeModal();
     showToast('Rit bijgewerkt');
-  } catch (err) { logError('saveEditRit', err); showToast('Fout bij opslaan'); }
+  } catch (err) { logError('saveEditRit', err); setButtonLoading(_btn, false, 'Opslaan'); showToast('Fout bij opslaan'); }
 }
 
 function openEditMateriaal(materiaalId) {
@@ -3356,7 +3402,7 @@ function openEditMateriaal(materiaalId) {
     '</div>' +
     '<div class="form-group"><label class="form-label">Prijs per eenheid (€, optioneel)</label>' +
       '<input class="form-input" id="m-edit-prijs" type="number" step="0.01" min="0" value="' + (parseFloat(m.prijs) || '') + '" placeholder="12.50"></div>' +
-    '<button class="btn btn-primary btn-full" onclick="saveEditMateriaal(\'' + materiaalId + '\')">Opslaan</button>';
+    '<button class="btn btn-primary btn-full" data-action="save-edit-materiaal" data-id="' + materiaalId + '">Opslaan</button>';
   openModal();
 }
 
@@ -3373,6 +3419,8 @@ async function saveEditMateriaal(materiaalId) {
   if (prijs !== null && hoeveelheid && parseFloat(hoeveelheid) * prijs > 50000) {
     if (!confirm('Totaalbedrag is ' + fmtEuro(parseFloat(hoeveelheid) * prijs) + '. Klopt dat?')) return;
   }
+  const _btn = document.querySelector('#modal-body .btn-primary');
+  setButtonLoading(_btn, true);
   try {
     const { error } = await sb.from('materialen').update({ naam, hoeveelheid, eenheid, prijs }).eq('id', materiaalId);
     if (error) throw error;
@@ -3381,7 +3429,7 @@ async function saveEditMateriaal(materiaalId) {
     renderMaterialen(AppState.currentProjectData);
     closeModal();
     showToast('Materiaal bijgewerkt');
-  } catch (err) { logError('saveEditMateriaal', err); showToast('Fout bij opslaan'); }
+  } catch (err) { logError('saveEditMateriaal', err); setButtonLoading(_btn, false, 'Opslaan'); showToast('Fout bij opslaan'); }
 }
 
 async function renderRitten(p) {
@@ -3401,12 +3449,12 @@ async function renderRitten(p) {
   el.innerHTML = sorted.map(r => {
     const route = [r.vanuit, r.bestemming].filter(Boolean).join(' → ');
     return `
-    <div class="item-row" style="cursor:pointer" onclick="openEditRit('${r.id}')">
+    <div class="item-row" style="cursor:pointer" data-action="open-edit-rit" data-id="${r.id}">
       <div class="item-row-info">
         <div class="item-row-title">${parseFloat(r.km) || 0} km${r.omschrijving ? ' — ' + escHtml(r.omschrijving) : ''}${route ? ' <span style="color:var(--muted);font-size:13px">('+escHtml(route)+')</span>' : ''}</div>
         <div class="item-row-sub">${fmtDate(r.datum)} · ${fmtEuro((parseFloat(r.km) || 0) * kmVergoeding)}</div>
       </div>
-      <button class="item-row-action" onclick="event.stopPropagation();deleteItem('ritten', '${r.id}')">
+      <button class="item-row-action" data-action="delete-rit" data-id="${r.id}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>`;
@@ -3448,7 +3496,7 @@ function renderNotitieRow(n, showDate) {
         <div class="item-row-title">${escHtml(n.tekst)}</div>
         <div class="item-row-sub">${dateStr}</div>
       </div>
-      <button class="item-row-action" onclick="deleteItem('notities','${n.id}')">
+      <button class="item-row-action" data-action="delete-notitie" data-id="${n.id}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>`;
@@ -3465,6 +3513,8 @@ function loadKlantForm(p) {
 
 async function saveKlantInfo() {
   if (!AppState.currentProjectData) return;
+  const _btn = document.querySelector('#klant-form-container .btn-primary');
+  setButtonLoading(_btn, true);
   const klant = {
     naam: document.getElementById('klant-naam').value.trim(),
     adres: document.getElementById('klant-adres').value.trim(),
@@ -3481,9 +3531,10 @@ async function saveKlantInfo() {
     });
     AppState.currentProjectData.klant = klant;
     document.getElementById('detail-client').textContent = 'Klant: ' + (klant.naam || 'Geen naam');
+    setButtonLoading(_btn, false, 'Opslaan');
     showToast('Klantgegevens opgeslagen');
     renderKlantOverview(AppState.currentProjectData);
-  } catch (err) { logError('submitClientEdit', err); showToast('Fout bij opslaan'); }
+  } catch (err) { logError('submitClientEdit', err); setButtonLoading(_btn, false, 'Opslaan'); showToast('Fout bij opslaan'); }
 }
 
 function renderKlantOverview(p) {
@@ -3724,6 +3775,8 @@ function openNewLeadModal() {
 async function submitNewLead() {
   const naam = document.getElementById('ml-naam')?.value.trim();
   if (!naam) { showToast('Vul een naam in'); return; }
+  const _btn = document.querySelector('#modal-body .btn-primary');
+  setButtonLoading(_btn, true);
   try {
     await addLead({
       naam,
@@ -3738,7 +3791,7 @@ async function submitNewLead() {
     closeModal();
     await renderLeadsList();
     showToast('Lead toegevoegd!');
-  } catch (err) { logError('submitNewLead', err); showToast('Fout bij opslaan lead'); }
+  } catch (err) { logError('submitNewLead', err); setButtonLoading(_btn, false, 'Lead opslaan'); showToast('Fout bij opslaan lead'); }
 }
 
 async function openEditLeadModal(leadId) {
@@ -3769,6 +3822,8 @@ async function openEditLeadModal(leadId) {
 async function submitEditLead(leadId) {
   const naam = document.getElementById('ml-naam')?.value.trim();
   if (!naam) { showToast('Vul een naam in'); return; }
+  const _btn = document.querySelector('#modal-body .btn-primary');
+  setButtonLoading(_btn, true);
   try {
     await updateLead(leadId, {
       naam,
@@ -3783,7 +3838,7 @@ async function submitEditLead(leadId) {
     closeModal();
     await renderLeadsList();
     showToast('Lead bijgewerkt');
-  } catch (err) { logError('submitEditLead', err); showToast('Fout bij bijwerken lead'); }
+  } catch (err) { logError('submitEditLead', err); setButtonLoading(_btn, false, 'Opslaan'); showToast('Fout bij bijwerken lead'); }
 }
 
 async function cycleLeadStatus(leadId) {
@@ -4130,6 +4185,9 @@ function openAddModal(type) {
 
 async function submitItem(type) {
   if (!AppState.currentProjectId || !AppState.currentProjectData) return;
+  const _btn = document.querySelector('#modal-body .btn-primary');
+  const _btnTxt = _btn?.textContent || 'Toevoegen';
+  setButtonLoading(_btn, true);
   try {
     const meerwerk = document.getElementById('m-meerwerk')?.checked || false;
     if (type === 'taak') {
@@ -4180,7 +4238,7 @@ async function submitItem(type) {
     closeModal();
     await switchTab(currentTab);
     showToast('Toegevoegd!');
-  } catch (err) { logError('submitNewItem', err); showToast('Fout bij toevoegen'); }
+  } catch (err) { logError('submitNewItem', err); setButtonLoading(_btn, false, _btnTxt); showToast('Fout bij toevoegen'); }
 }
 
 function openModal() {
@@ -4697,6 +4755,102 @@ function pdfAddPageFooters(doc, footerText) {
   }
 }
 
+// Generic PDF row helpers to reduce duplication across offerte/factuur renderers
+// `state` is a mutable object { y, ri, subtotaal } shared with the caller
+function renderPdfUrenRows(doc, urenArr, uurtarief, state, cfg) {
+  const { navy, muted, light } = PDF_COLORS;
+  const lm = cfg.lm, rm = cfg.rm;
+  if (cfg.summary) {
+    // Offerte mode: one summary row
+    const totalU = urenArr.reduce((s, u) => s + (u.uren || 0), 0);
+    if (totalU <= 0) return;
+    const bedrag = totalU * uurtarief;
+    state.subtotaal += bedrag;
+    state.y = pdfNewPageIfNeeded(doc, state.y, 6.5);
+    doc.setFillColor(255, 255, 255);
+    doc.rect(lm, state.y, 170, 6.5, 'F');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...navy);
+    doc.text('Arbeidskosten', lm + 3, state.y + 4.3);
+    doc.text(totalU + ' uur', 118, state.y + 4.3);
+    doc.text(fmtEuro(uurtarief), 140, state.y + 4.3);
+    doc.text(fmtEuro(bedrag), 163, state.y + 4.3, { align: 'right' });
+    state.y += 6.5;
+    doc.setDrawColor(...light); doc.setLineWidth(0.2); doc.line(lm, state.y, rm, state.y);
+    state.ri++;
+  } else {
+    // Factuur mode: one row per entry with date
+    urenArr.forEach(u => {
+      const bedrag = (u.uren || 0) * uurtarief;
+      state.subtotaal += bedrag;
+      state.y = pdfNewPageIfNeeded(doc, state.y, 6.5);
+      const even = state.ri % 2 === 0;
+      doc.setFillColor(even ? 249 : 255, even ? 250 : 255, even ? 251 : 255);
+      doc.rect(lm, state.y, 170, 6.5, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...navy);
+      doc.text(sanitizePdfText(u.omschrijving || 'Arbeidskosten').substring(0, 32), lm + 3, state.y + 4.3);
+      doc.setTextColor(...muted);
+      doc.text(new Date(u.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }), 100, state.y + 4.3);
+      doc.setTextColor(...navy);
+      doc.text(u.uren + ' uur \u00D7 ' + fmtEuro(uurtarief), 126, state.y + 4.3);
+      doc.text(fmtEuro(bedrag), 163, state.y + 4.3, { align: 'right' });
+      state.y += 6.5;
+      doc.setDrawColor(...light); doc.setLineWidth(0.2); doc.line(lm, state.y, rm, state.y);
+      state.ri++;
+    });
+  }
+}
+
+function renderPdfMatRows(doc, matArr, state, cfg) {
+  const { navy, muted, light } = PDF_COLORS;
+  const lm = cfg.lm, rm = cfg.rm;
+  if (matArr.length === 0) return;
+  // Factuur mode adds a MATERIALEN header
+  if (cfg.header) {
+    state.y = pdfNewPageIfNeeded(doc, state.y, 5.5);
+    doc.setFillColor(245, 247, 250);
+    doc.rect(lm, state.y, 170, 5.5, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...muted);
+    doc.text('MATERIALEN', lm + 3, state.y + 3.8);
+    state.y += 5.5;
+    state.ri = 0;
+  }
+  const zebraEven = cfg.zebraEven || [249, 250, 251];
+  matArr.forEach(m => {
+    const prijs  = parseFloat(m.prijs) || 0;
+    const hoev   = parseFloat(m.hoeveelheid) || (prijs > 0 ? 1 : 0);
+    const bedrag = prijs * hoev;
+    if (prijs > 0) state.subtotaal += bedrag;
+    state.y = pdfNewPageIfNeeded(doc, state.y, 6.5);
+    const even = state.ri % 2 === 0;
+    doc.setFillColor(even ? zebraEven[0] : 255, even ? zebraEven[1] : 255, even ? zebraEven[2] : 255);
+    doc.rect(lm, state.y, 170, 6.5, 'F');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...navy);
+    const matNaam = sanitizePdfText(m.naam);
+    doc.text((matNaam.length > 38 ? matNaam.substring(0, 36) + '...' : matNaam), lm + 3, state.y + 4.3);
+    if (cfg.showNtb && prijs <= 0) {
+      // Offerte mode: show n.t.b. for missing prices
+      if (m.hoeveelheid) doc.text(sanitizePdfText(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : '')), 118, state.y + 4.3);
+      doc.setTextColor(...muted);
+      doc.text('n.t.b.', 140, state.y + 4.3);
+      doc.text('n.t.b.', 163, state.y + 4.3, { align: 'right' });
+    } else if (prijs > 0) {
+      if (cfg.showNtb) {
+        // Offerte: hoeveelheid + eenheid in one column, prijs in next
+        if (m.hoeveelheid) doc.text(sanitizePdfText(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : '')), 118, state.y + 4.3);
+        doc.text(fmtEuro(prijs), 140, state.y + 4.3);
+      } else {
+        // Factuur: "hoeveelheid × prijs" format
+        const hoevStr = m.hoeveelheid ? sanitizePdfText(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : '')) : '1';
+        doc.text(hoevStr + ' \u00D7 ' + fmtEuro(prijs), 126, state.y + 4.3);
+      }
+      doc.text(fmtEuro(bedrag), 163, state.y + 4.3, { align: 'right' });
+    }
+    state.y += 6.5;
+    doc.setDrawColor(...light); doc.line(lm, state.y, rm, state.y);
+    state.ri++;
+  });
+}
+
 function sanitizePdfText(str) {
   if (!str) return '';
   return String(str)
@@ -4711,7 +4865,7 @@ function sanitizePdfText(str) {
     .replace(/\u2026/g, '...')
     // Alle overige niet-ASCII tekens die problemen kunnen geven verwijderen
     // Maar behoud euro-teken en Nederlandse tekens
-    .replace(/[^\x20-\x7E\u00C0-\u00FF\u20AC]/g, '')
+    .replace(/[^\x20-\x7E\u00C0-\u024F\u20AC]/g, '')
     .trim();
 }
 
@@ -4720,7 +4874,7 @@ async function generateOfferte(force = false) {
   // Altijd verse data ophalen om stale data te voorkomen
   AppState.currentProjectData = await fetchProjectWithData(AppState.currentProjectId);
   const p = AppState.currentProjectData;
-  if (!p) return;
+  if (!p) { showToast('Kon projectgegevens niet ophalen voor offerte'); return; }
   const settings = await loadSettings();
 
   if (!window.jspdf) { showToast('PDF bibliotheek niet geladen, herlaad de pagina'); return; }
@@ -4767,9 +4921,9 @@ async function generateOfferte(force = false) {
   doc.text('BEDRAG', 163, y + 4.8, { align: 'right' });
   y += 7;
 
-  let subtotaal = 0;
   const uurtarief = settings.standaardUurtarief || 45;
-  let ri = 0;
+  const offCfg = { lm, rm, summary: true, showNtb: true, zebraEven: [253, 248, 244] };
+  const st = { y, ri: 0, subtotaal: 0 };
 
   // Split uren en materialen in regulier en meerwerk
   const reguliereUrenOff = (p.uren || []).filter(u => !u.meerwerk);
@@ -4778,82 +4932,29 @@ async function generateOfferte(force = false) {
   const meerwerkMatOff = (p.materialen || []).filter(m => m.meerwerk);
   const hasMeerwerkOff = meerwerkUrenOff.length > 0 || meerwerkMatOff.length > 0;
 
-  // Helper voor offerte uren-regel
-  function renderOfferteUren(urenArr) {
-    const totalU = urenArr.reduce((s, u) => s + (u.uren || 0), 0);
-    if (totalU <= 0) return;
-    const bedrag = totalU * uurtarief;
-    subtotaal += bedrag;
-    y = pdfNewPageIfNeeded(doc, y, 6.5);
-    doc.setFillColor(255, 255, 255);
-    doc.rect(lm, y, 170, 6.5, 'F');
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...navy);
-    doc.text('Arbeidskosten', lm + 3, y + 4.3);
-    doc.text(totalU + ' uur', 118, y + 4.3);
-    doc.text(fmtEuro(uurtarief), 140, y + 4.3);
-    doc.text(fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
-    y += 6.5;
-    doc.setDrawColor(...light);
-    doc.setLineWidth(0.2);
-    doc.line(lm, y, rm, y);
-    ri++;
-  }
-
-  // Helper voor offerte materialen
-  function renderOfferteMat(matArr) {
-    matArr.forEach(m => {
-      const prijs  = parseFloat(m.prijs) || 0;
-      const hoev   = parseFloat(m.hoeveelheid) || (prijs > 0 ? 1 : 0);
-      const bedrag = prijs * hoev;
-      if (prijs > 0) subtotaal += bedrag;
-      y = pdfNewPageIfNeeded(doc, y, 6.5);
-      doc.setFillColor(ri % 2 === 0 ? 253 : 255, ri % 2 === 0 ? 248 : 255, ri % 2 === 0 ? 244 : 255);
-      doc.rect(lm, y, 170, 6.5, 'F');
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(...navy);
-      const matNaamOff = sanitizePdfText(m.naam);
-      doc.text((matNaamOff.length > 38 ? matNaamOff.substring(0, 36) + '...' : matNaamOff), lm + 3, y + 4.3);
-      if (m.hoeveelheid) doc.text(sanitizePdfText(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : '')), 118, y + 4.3);
-      if (prijs > 0) {
-        doc.text(fmtEuro(prijs), 140, y + 4.3);
-        doc.text(fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
-      } else {
-        doc.setTextColor(...muted);
-        doc.text('n.t.b.', 140, y + 4.3);
-        doc.text('n.t.b.', 163, y + 4.3, { align: 'right' });
-      }
-      y += 6.5;
-      doc.setDrawColor(...light);
-      doc.line(lm, y, rm, y);
-      ri++;
-    });
-  }
-
-  // Reguliere uren
-  renderOfferteUren(reguliereUrenOff);
-
-  // Reguliere materialen
-  renderOfferteMat(reguliereMatOff);
+  // Reguliere uren + materialen
+  renderPdfUrenRows(doc, reguliereUrenOff, uurtarief, st, offCfg);
+  renderPdfMatRows(doc, reguliereMatOff, st, offCfg);
 
   // === MEERWERK BLOK ===
   if (hasMeerwerkOff) {
-    y += 4;
-    y = pdfNewPageIfNeeded(doc, y, 12);
+    st.y += 4;
+    st.y = pdfNewPageIfNeeded(doc, st.y, 12);
     doc.setFillColor(249, 115, 22);
-    doc.rect(lm, y, 170, 7, 'F');
+    doc.rect(lm, st.y, 170, 7, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(255, 255, 255);
-    doc.text('MEERWERK', lm + 3, y + 4.8);
-    y += 7;
-    ri = 0;
+    doc.text('MEERWERK', lm + 3, st.y + 4.8);
+    st.y += 7;
+    st.ri = 0;
 
-    renderOfferteUren(meerwerkUrenOff);
-    renderOfferteMat(meerwerkMatOff);
+    renderPdfUrenRows(doc, meerwerkUrenOff, uurtarief, st, offCfg);
+    renderPdfMatRows(doc, meerwerkMatOff, st, offCfg);
   }
+
+  y = st.y;
+  let subtotaal = st.subtotaal;
 
   y = pdfNewPageIfNeeded(doc, y, 30);
   const btwPct = settings.btwPercentage || 21;
@@ -4920,7 +5021,7 @@ async function generateFactuur(force = false) {
   // Altijd verse data ophalen om stale data te voorkomen
   AppState.currentProjectData = await fetchProjectWithData(AppState.currentProjectId);
   const p = AppState.currentProjectData;
-  if (!p) return;
+  if (!p) { showToast('Kon projectgegevens niet ophalen voor factuur'); return; }
   const settings = await loadSettings();
 
   if (!window.jspdf) { showToast('PDF bibliotheek niet geladen, herlaad de pagina'); return; }
@@ -4969,7 +5070,8 @@ async function generateFactuur(force = false) {
 
   let subtotaal = 0;
   const uurtarief = settings.standaardUurtarief || 45;
-  let ri = 0;
+  const factCfg = { lm, rm, summary: false, showNtb: false, header: true, zebraEven: [249, 250, 251] };
+  const fst = { y, ri: 0, subtotaal };
 
   // Split uren en materialen in regulier en meerwerk
   const reguliereUren = [...(p.uren || [])].filter(u => !u.meerwerk).sort((a, b) => new Date(a.datum) - new Date(b.datum));
@@ -4978,74 +5080,11 @@ async function generateFactuur(force = false) {
   const meerwerkMat = (p.materialen || []).filter(m => m.meerwerk && parseFloat(m.prijs) > 0);
   const hasMeerwerk = meerwerkUren.length > 0 || meerwerkMat.length > 0;
 
-  // Helper om urenregels te renderen
-  function renderFactuurUren(urenArr) {
-    urenArr.forEach(u => {
-      const bedrag = (u.uren || 0) * uurtarief;
-      subtotaal += bedrag;
-      y = pdfNewPageIfNeeded(doc, y, 6.5);
-      doc.setFillColor(ri % 2 === 0 ? 249 : 255, ri % 2 === 0 ? 250 : 255, ri % 2 === 0 ? 251 : 255);
-      doc.rect(lm, y, 170, 6.5, 'F');
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(...navy);
-      const omschr = sanitizePdfText(u.omschrijving || 'Arbeidskosten').substring(0, 32);
-      doc.text(omschr, lm + 3, y + 4.3);
-      doc.setTextColor(...muted);
-      doc.text(new Date(u.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }), 100, y + 4.3);
-      doc.setTextColor(...navy);
-      doc.text(u.uren + ' uur \u00D7 ' + fmtEuro(uurtarief), 126, y + 4.3);
-      doc.text(fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
-      y += 6.5;
-      doc.setDrawColor(...light);
-      doc.setLineWidth(0.2);
-      doc.line(lm, y, rm, y);
-      ri++;
-    });
-  }
+  // Reguliere uren + materialen
+  renderPdfUrenRows(doc, reguliereUren, uurtarief, fst, factCfg);
+  renderPdfMatRows(doc, reguliereMat, fst, factCfg);
 
-  // Helper om materiaalregels te renderen
-  function renderFactuurMat(matArr) {
-    if (matArr.length === 0) return;
-    y = pdfNewPageIfNeeded(doc, y, 5.5);
-    doc.setFillColor(245, 247, 250);
-    doc.rect(lm, y, 170, 5.5, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(...muted);
-    doc.text('MATERIALEN', lm + 3, y + 3.8);
-    y += 5.5;
-    ri = 0;
-    matArr.forEach(m => {
-      const prijs  = parseFloat(m.prijs);
-      const hoev   = parseFloat(m.hoeveelheid) || 1;
-      const bedrag = prijs * hoev;
-      subtotaal += bedrag;
-      y = pdfNewPageIfNeeded(doc, y, 6.5);
-      doc.setFillColor(ri % 2 === 0 ? 249 : 255, ri % 2 === 0 ? 250 : 255, ri % 2 === 0 ? 251 : 255);
-      doc.rect(lm, y, 170, 6.5, 'F');
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(...navy);
-      const matNaam = sanitizePdfText(m.naam);
-      doc.text((matNaam.length > 38 ? matNaam.substring(0, 36) + '...' : matNaam), lm + 3, y + 4.3);
-      // Datum-kolom leeg voor materialen (kolom bestaat in tabelkop)
-      doc.setTextColor(...navy);
-      const hoevStr = m.hoeveelheid ? sanitizePdfText(m.hoeveelheid + (m.eenheid ? ' ' + m.eenheid : '')) : '1';
-      doc.text(hoevStr + ' \u00D7 ' + fmtEuro(prijs), 126, y + 4.3);
-      doc.text(fmtEuro(bedrag), 163, y + 4.3, { align: 'right' });
-      y += 6.5;
-      doc.setDrawColor(...light);
-      doc.line(lm, y, rm, y);
-      ri++;
-    });
-  }
-
-  // Reguliere urenregels
-  renderFactuurUren(reguliereUren);
-
-  // Reguliere materialen met prijs
-  renderFactuurMat(reguliereMat);
+  y = fst.y; subtotaal = fst.subtotaal; let ri = fst.ri;
 
   // Reiskosten
   const kmVergoeding = settings.kilometerVergoeding || 0.23;
@@ -5098,7 +5137,6 @@ async function generateFactuur(force = false) {
   if (hasMeerwerk) {
     y += 4;
     y = pdfNewPageIfNeeded(doc, y, 12);
-    // Oranje meerwerk header
     doc.setFillColor(249, 115, 22);
     doc.rect(lm, y, 170, 7, 'F');
     doc.setFont('helvetica', 'bold');
@@ -5106,13 +5144,11 @@ async function generateFactuur(force = false) {
     doc.setTextColor(255, 255, 255);
     doc.text('MEERWERK', lm + 3, y + 4.8);
     y += 7;
-    ri = 0;
 
-    // Meerwerk uren
-    renderFactuurUren(meerwerkUren);
-
-    // Meerwerk materialen
-    renderFactuurMat(meerwerkMat);
+    const mst = { y, ri: 0, subtotaal };
+    renderPdfUrenRows(doc, meerwerkUren, uurtarief, mst, factCfg);
+    renderPdfMatRows(doc, meerwerkMat, mst, factCfg);
+    y = mst.y; subtotaal = mst.subtotaal;
   }
 
   y = pdfNewPageIfNeeded(doc, y, 30);
@@ -5228,6 +5264,7 @@ async function startRecording() {
 
   isRecording = true;
   document.querySelectorAll('.mic-btn, .mic-btn-compact').forEach(b => b.classList.add('recording'));
+  updateMicIcons('recording');
   const _hintEl1 = document.getElementById('home-hint'); if (_hintEl1) _hintEl1.textContent = 'Opname bezig — druk nogmaals om te stoppen';
   hideAIResponse();
 }
@@ -5246,6 +5283,7 @@ function stopRecording() {
     b.classList.add('processing');
     b.disabled = true;
   });
+  updateMicIcons('processing');
   const _hintEl2 = document.getElementById('home-hint'); if (_hintEl2) _hintEl2.textContent = 'Verwerken...';
 }
 
@@ -5277,6 +5315,35 @@ async function processRecording() {
     showTranscript('');
     showAIResponse('Geen audio opgenomen. Houd de microfoonknop ingedrukt terwijl je spreekt.');
     return;
+  }
+
+  const opnameDuurMs = audioChunks.length * 200;
+  if (opnameDuurMs < 800) {
+    resetMicState('Druk op de microfoon en spreek in wat je wilt doen');
+    showTranscript('');
+    showAIResponse('Opname te kort. Spreek minimaal 1 seconde in.');
+    return;
+  }
+
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    const channelData = audioBuffer.getChannelData(0);
+    let sumSquares = 0;
+    for (let i = 0; i < channelData.length; i++) {
+      sumSquares += channelData[i] * channelData[i];
+    }
+    const rms = Math.sqrt(sumSquares / channelData.length);
+    audioContext.close();
+    if (rms < 0.01) {
+      resetMicState('Druk op de microfoon en spreek in wat je wilt doen');
+      showTranscript('');
+      showAIResponse('Geen spraak gedetecteerd. Controleer of je microfoon aan staat en niet op mute.');
+      return;
+    }
+  } catch (audioErr) {
+    // Audio analyse overgeslagen
   }
 
   await transcribeAudio(audioBlob, ext);
@@ -5330,6 +5397,24 @@ async function transcribeAudio(audioBlob, ext) {
       return;
     }
 
+    const woorden = transcript.split(/\s+/).filter(Boolean);
+    if (woorden.length <= 1 && transcript.length < 4) {
+      resetMicState('Druk op de microfoon en spreek in wat je wilt doen');
+      showTranscript('');
+      showAIResponse('Kon je niet goed verstaan. Spreek iets luider of duidelijker en probeer opnieuw.');
+      return;
+    }
+
+    if (woorden.length >= 4) {
+      const uniek = new Set(woorden.map(w => w.toLowerCase()));
+      if (uniek.size <= 2) {
+        resetMicState('Druk op de microfoon en spreek in wat je wilt doen');
+        showTranscript('');
+        showAIResponse('Er werd vooral ruis opgepikt. Controleer of je microfoon goed werkt en probeer opnieuw.');
+        return;
+      }
+    }
+
     showTranscript(transcript);
     showTypingIndicator();
     await interpretWithClaude(transcript);
@@ -5346,12 +5431,40 @@ async function transcribeAudio(audioBlob, ext) {
   }
 }
 
+function updateMicIcons(state) {
+  const btn = document.getElementById('mic-btn-compact');
+  if (!btn) return;
+  const iconIdle = btn.querySelector('.mic-icon-idle');
+  const iconStop = btn.querySelector('.mic-icon-stop');
+  const iconLoading = btn.querySelector('.mic-icon-loading');
+  const label = btn.querySelector('.mic-label');
+  if (!iconIdle || !iconStop || !iconLoading || !label) return;
+
+  if (state === 'recording') {
+    iconIdle.style.display = 'none';
+    iconStop.style.display = '';
+    iconLoading.style.display = 'none';
+    label.textContent = 'Luisteren...';
+  } else if (state === 'processing') {
+    iconIdle.style.display = 'none';
+    iconStop.style.display = 'none';
+    iconLoading.style.display = '';
+    label.textContent = 'Verwerken...';
+  } else {
+    iconIdle.style.display = '';
+    iconStop.style.display = 'none';
+    iconLoading.style.display = 'none';
+    label.textContent = '';
+  }
+}
+
 function resetMicState(hint) {
   const _hintEl = document.getElementById('home-hint'); if (_hintEl) _hintEl.textContent = hint || '';
   document.querySelectorAll('.mic-btn, .mic-btn-compact').forEach(b => {
     b.classList.remove('recording', 'processing');
     b.disabled = false;
   });
+  updateMicIcons('idle');
 }
 
 function showTranscript(text) {
@@ -5785,7 +5898,20 @@ async function executeAction(actie, parameters) {
 // ===================================================
 
 function logError(context, error) {
-  console.error('[BouwBuddy]', context, error);
+  console.error('[KlusMaatje]', context, error);
+}
+
+function setButtonLoading(btn, isLoading, originalText) {
+  if (!btn) return;
+  if (isLoading) {
+    btn.disabled = true;
+    btn.textContent = 'Bezig...';
+    btn.style.opacity = '0.6';
+  } else {
+    btn.disabled = false;
+    btn.textContent = originalText || '';
+    btn.style.opacity = '';
+  }
 }
 
 function escHtml(str) {
@@ -6012,28 +6138,31 @@ let timerTickInterval = null;
 let _timerDataCache = null;
 let _timerDisplayEls = null;
 
-function initTimer() {
-  _timerDataCache = getTimerData();
-  if (_timerDataCache) {
-    timerInterval = setInterval(renderDagstartTimerCard, 30000);
-    startTimerTick();
+// Idempotent helpers — safe to call multiple times without stacking intervals
+function ensureTimerIntervals() {
+  if (!timerInterval) timerInterval = setInterval(renderDagstartTimerCard, 30000);
+  if (!timerTickInterval) {
+    _timerDisplayEls = null;
+    timerTickInterval = setInterval(updateTimerDisplays, 1000);
   }
 }
 
-function startTimerTick() {
-  if (timerTickInterval) return;
-  _timerDisplayEls = null; // force re-query
-  timerTickInterval = setInterval(updateTimerDisplays, 1000);
-}
-
-function stopTimerTick() {
+function clearAllTimerIntervals() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   if (timerTickInterval) { clearInterval(timerTickInterval); timerTickInterval = null; }
   _timerDisplayEls = null;
 }
 
+function initTimer() {
+  _timerDataCache = getTimerData();
+  if (_timerDataCache) {
+    ensureTimerIntervals();
+  }
+}
+
 function updateTimerDisplays() {
   if (!_timerDataCache) { _timerDataCache = getTimerData(); }
-  if (!_timerDataCache) { stopTimerTick(); return; }
+  if (!_timerDataCache) { clearAllTimerIntervals(); return; }
   const ms = Date.now() - _timerDataCache.start;
   const u = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
@@ -6046,17 +6175,55 @@ function updateTimerDisplays() {
 }
 
 function getTimerData() {
-  try { return JSON.parse(localStorage.getItem('bouwbuddy_timer') || 'null'); } catch (err) { logError('getTimerData', err); return null; }
+  try { return JSON.parse(localStorage.getItem('klusmaatje_timer') || 'null'); } catch (err) { logError('getTimerData', err); return null; }
 }
 
 function setTimerData(data) {
   _timerDataCache = data;
   _timerDisplayEls = null;
   if (data) {
-    localStorage.setItem('bouwbuddy_timer', JSON.stringify(data));
+    localStorage.setItem('klusmaatje_timer', JSON.stringify(data));
   } else {
-    localStorage.removeItem('bouwbuddy_timer');
+    localStorage.removeItem('klusmaatje_timer');
   }
+  // Notify other tabs
+  if (_timerChannel) {
+    try { _timerChannel.postMessage({ type: 'timer-sync', data }); } catch (_) {}
+  }
+}
+
+// Cross-tab timer sync via BroadcastChannel (with storage event fallback)
+let _timerChannel = null;
+try {
+  _timerChannel = new BroadcastChannel('klusmaatje_timer_sync');
+  _timerChannel.onmessage = (e) => {
+    if (e.data?.type === 'timer-sync') {
+      _timerDataCache = e.data.data;
+      _timerDisplayEls = null;
+      if (_timerDataCache) {
+        ensureTimerIntervals();
+      } else {
+        clearAllTimerIntervals();
+        resetAllTimerButtons();
+      }
+      renderDagstartTimerCard();
+    }
+  };
+} catch (_) {
+  // BroadcastChannel not supported — fall back to storage event
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'klusmaatje_timer') {
+      _timerDataCache = e.newValue ? JSON.parse(e.newValue) : null;
+      _timerDisplayEls = null;
+      if (_timerDataCache) {
+        ensureTimerIntervals();
+      } else {
+        clearAllTimerIntervals();
+        resetAllTimerButtons();
+      }
+      renderDagstartTimerCard();
+    }
+  });
 }
 
 function resetAllTimerButtons() {
@@ -6103,16 +6270,15 @@ async function startTimer() {
       </select></div>
     <div class="form-group"><label class="form-label">Omschrijving (optioneel)</label>
       <input class="form-input" id="m-timer-omschrijving" type="text" placeholder="Bijv. Schilderen woonkamer"></div>
-    <button class="btn btn-primary btn-full" onclick="confirmStartTimer()">⏱ Start</button>`;
+    <button class="btn btn-primary btn-full" data-action="confirm-start-timer-generic">⏱ Start</button>`;
   openModal();
 }
 
-function confirmStartTimer() {
+function confirmStartTimerGeneric() {
   const projectId = document.getElementById('m-timer-project')?.value || null;
   const omschrijving = document.getElementById('m-timer-omschrijving')?.value.trim() || '';
   setTimerData({ start: Date.now(), projectId, omschrijving });
-  if (!timerInterval) timerInterval = setInterval(renderDagstartTimerCard, 30000);
-  startTimerTick();
+  ensureTimerIntervals();
   closeModal();
   renderDagstartTimerCard();
   showToast('Timer gestart');
@@ -6129,27 +6295,25 @@ function startTimerVanProject(projectId, projectNaam) {
       <label class="form-label">Wat ga je doen?</label>
       <input class="form-input" id="timer-start-omschrijving" type="text" placeholder="Bijv. timmeren, schilderen..." autofocus>
     </div>
-    <button class="btn btn-primary btn-full" onclick="confirmStartTimer('${projectId}', '${escHtml(projectNaam)}', true)" style="margin-bottom:8px">Start timer</button>
+    <button class="btn btn-primary btn-full" data-action="confirm-start-timer-project" data-id="${projectId}" data-met-omschrijving="true" style="margin-bottom:8px">Start timer</button>
     <div style="text-align:center">
-      <span onclick="confirmStartTimer('${projectId}', '${escHtml(projectNaam)}', false)" style="color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline">Start zonder omschrijving</span>
+      <span data-action="confirm-start-timer-project" data-id="${projectId}" data-met-omschrijving="false" style="color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline">Start zonder omschrijving</span>
     </div>`;
   openModal();
   setTimeout(() => { const inp = document.getElementById('timer-start-omschrijving'); if (inp) inp.focus(); }, 300);
 }
 
-function confirmStartTimer(projectId, projectNaam, metOmschrijving) {
+function confirmStartTimerProject(projectId, metOmschrijving) {
   const omschrijving = metOmschrijving ? (document.getElementById('timer-start-omschrijving')?.value?.trim() || '') : '';
   closeModal({ target: document.getElementById('modal-overlay') });
 
   setTimerData({ start: Date.now(), projectId, omschrijving });
-  if (!timerInterval) timerInterval = setInterval(renderDagstartTimerCard, 30000);
-  startTimerTick();
+  ensureTimerIntervals();
   renderDagstartTimerCard();
-  // Re-render the projects list to show the new timer state
   if (AppState.currentScreen === 'projects') {
     renderProjectsList();
   }
-  showToast('⏱ Timer gestart — ' + escHtml(projectNaam));
+  showToast('⏱ Timer gestart');
 }
 
 async function stopTimerDirect() {
@@ -6161,9 +6325,7 @@ async function stopTimerDirect() {
   const projectId = data.projectId;
 
   setTimerData(null);
-  clearInterval(timerInterval);
-  timerInterval = null;
-  stopTimerTick();
+  clearAllTimerIntervals();
 
   renderDagstartTimerCard();
   resetAllTimerButtons();
@@ -6201,9 +6363,7 @@ async function stopTimer() {
 
   // Wis timer
   setTimerData(null);
-  clearInterval(timerInterval);
-  timerInterval = null;
-  stopTimerTick();
+  clearAllTimerIntervals();
   renderDagstartTimerCard();
   resetAllTimerButtons();
 
@@ -6246,6 +6406,8 @@ async function stopTimer() {
 async function submitTimerQuick() {
   const d = window._timerStopData;
   if (!d) return;
+  const _btn = document.querySelector('#modal-body .btn-primary');
+  setButtonLoading(_btn, true);
   const omschrijving = document.getElementById('m-timer-omschrijving')?.value.trim() || '';
   try {
     await addUrenDB(d.projectId, { datum: d.datum, uren: d.uren, omschrijving });
@@ -6257,7 +6419,7 @@ async function submitTimerQuick() {
       if (currentTab === 'uren') renderUren(AppState.currentProjectData);
     }
     if (AppState.currentScreen === 'home') renderDagstartScherm();
-  } catch (err) { logError('submitTimerHours', err); showToast('Fout bij opslaan uren'); }
+  } catch (err) { logError('submitTimerHours', err); setButtonLoading(_btn, false, 'Opslaan'); showToast('Fout bij opslaan uren'); }
 }
 
 function openTimerFullEdit() {
@@ -6281,6 +6443,8 @@ function openTimerFullEdit() {
 async function submitTimerFullEdit() {
   const d = window._timerStopData;
   if (!d) return;
+  const _btn = document.querySelector('#modal-body .btn-primary');
+  setButtonLoading(_btn, true);
   const uren = parseFloat(document.getElementById('m-edit-uren')?.value) || d.uren;
   const datum = document.getElementById('m-edit-datum')?.value || d.datum;
   const omschrijving = document.getElementById('m-edit-omschrijving')?.value.trim() || '';
@@ -6294,7 +6458,7 @@ async function submitTimerFullEdit() {
       if (currentTab === 'uren') renderUren(AppState.currentProjectData);
     }
     if (AppState.currentScreen === 'home') renderDagstartScherm();
-  } catch (err) { logError('submitTimerFullEdit', err); showToast('Fout bij opslaan uren'); }
+  } catch (err) { logError('submitTimerFullEdit', err); setButtonLoading(_btn, false, 'Opslaan'); showToast('Fout bij opslaan uren'); }
   window._timerStopData = null;
 }
 
@@ -6527,9 +6691,9 @@ async function renderFotos(p) {
   }
   // Show placeholders immediately
   grid.innerHTML = fotos.map(f => `
-    <div class="foto-thumb" id="foto-${escHtml(f.id)}" onclick="viewPhoto('${escHtml(f.id)}')">
+    <div class="foto-thumb" id="foto-${escHtml(f.id)}" data-action="view-photo" data-id="${f.id}">
       <div style="width:100%;height:100%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:20px">📷</div>
-      <button class="foto-delete" onclick="event.stopPropagation();deletePhoto('${escHtml(f.id)}')">✕</button>
+      <button class="foto-delete" data-action="delete-photo" data-id="${f.id}">✕</button>
     </div>`).join('');
   // Load signed URLs async
   for (const f of fotos) {
@@ -6721,7 +6885,7 @@ function renderDocs(p) {
             <div class="docs-item-sub">${datum} · ${fmtEuro(o.totaal || o.bedrag || 0)} · <span style="color:${statusClr};font-weight:600">${escHtml(statusLbl)}</span></div>
           </div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-sm btn-secondary" style="flex:1" onclick="cycleOfferteStatus('${escHtml(p.id)}','${escHtml(o.id)}')">Status wijzigen</button>
+            <button class="btn btn-sm btn-secondary" style="flex:1" data-action="cycle-offerte-status" data-project-id="${p.id}" data-id="${o.id}">Status wijzigen</button>
           </div>
         </div>`;
       }).join('');
@@ -6742,8 +6906,8 @@ function renderDocs(p) {
             <div class="docs-item-sub">${datum} · ${fmtEuro(f.totaal || f.bedrag || 0)} · <span style="color:${statusClr};font-weight:600">${escHtml(statusLbl)}</span></div>
           </div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-sm btn-secondary" style="flex:1" onclick="toggleFactuurStatus('${escHtml(p.id)}','${escHtml(f.id)}')">${isOpen ? 'Markeer betaald' : 'Heropen'}</button>
-            ${isOpen ? `<button class="btn btn-sm btn-secondary" style="flex:1" onclick="generateHerinnering('${escHtml(p.id)}','${escHtml(f.id)}')">Herinnering</button>` : ''}
+            <button class="btn btn-sm btn-secondary" style="flex:1" data-action="toggle-factuur-status" data-project-id="${p.id}" data-id="${f.id}">${isOpen ? 'Markeer betaald' : 'Heropen'}</button>
+            ${isOpen ? `<button class="btn btn-sm btn-secondary" style="flex:1" data-action="generate-herinnering" data-project-id="${p.id}" data-id="${f.id}">Herinnering</button>` : ''}
           </div>
         </div>`;
       }).join('');
@@ -7630,10 +7794,15 @@ document.addEventListener('click', function handleDelegatedClick(e) {
   if (!el) return;
   const action = el.dataset.action;
   const id = el.dataset.id;
-  console.log('click action:', action, 'id:', id);
 
-  // Stop propagation for actions inside a .project-card that are not 'open-project',
-  // so they don't bubble up and trigger the card's own 'open-project' action.
+  // Stop propagation for nested data-action elements to prevent parent data-action from firing
+  if (el !== e.target.closest('[data-action]') || el.parentElement?.closest('[data-action]')) {
+    // Only stop if there's a parent with data-action (nested actions)
+    if (el.parentElement?.closest('[data-action]')) {
+      e.stopPropagation();
+    }
+  }
+  // Also stop for actions inside a .project-card that are not 'open-project'
   if (action !== 'open-project' && el.closest('.project-card')) {
     e.stopPropagation();
   }
@@ -7667,6 +7836,38 @@ document.addEventListener('click', function handleDelegatedClick(e) {
       e.stopPropagation();
       toggleTaakFromPlanning(el.dataset.projectId, id);
       break;
+    // Taken
+    case 'open-edit-taak':       openEditTaak(id); break;
+    case 'toggle-taak':          toggleTaak(id); break;
+    case 'toggle-meerwerk-taken': toggleMeerwerk('taken'); break;
+    case 'delete-taak':          deleteItem('taken', id); break;
+    case 'save-edit-taak':       saveEditTaak(id); break;
+    // Materialen
+    case 'open-edit-materiaal':  openEditMateriaal(id); break;
+    case 'toggle-meerwerk-materialen': toggleMeerwerk('materialen'); break;
+    case 'delete-materiaal':     deleteItem('materialen', id); break;
+    case 'save-edit-materiaal':  saveEditMateriaal(id); break;
+    // Uren
+    case 'open-edit-uren':       openEditUren(id); break;
+    case 'toggle-meerwerk-uren': toggleMeerwerk('uren'); break;
+    case 'delete-uren':          deleteItem('uren', id); break;
+    case 'save-edit-uren':       saveEditUren(id); break;
+    // Ritten
+    case 'open-edit-rit':        openEditRit(id); break;
+    case 'delete-rit':           deleteItem('ritten', id); break;
+    case 'save-edit-rit':        saveEditRit(id); break;
+    // Notities
+    case 'delete-notitie':       deleteItem('notities', id); break;
+    // Foto's
+    case 'view-photo':           viewPhoto(id); break;
+    case 'delete-photo':         e.stopPropagation(); deletePhoto(id); break;
+    // Documenten
+    case 'cycle-offerte-status': cycleOfferteStatus(el.dataset.projectId, id); break;
+    case 'toggle-factuur-status': toggleFactuurStatus(el.dataset.projectId, id); break;
+    case 'generate-herinnering': generateHerinnering(el.dataset.projectId, id); break;
+    // Timer modals
+    case 'confirm-start-timer-generic': confirmStartTimerGeneric(); break;
+    case 'confirm-start-timer-project': confirmStartTimerProject(id, el.dataset.metOmschrijving === 'true'); break;
   }
 });
 
@@ -7676,8 +7877,14 @@ document.addEventListener('click', function handleDelegatedClick(e) {
 
 // Cleanup intervals on page unload to prevent memory leaks
 window.addEventListener('beforeunload', () => {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-  stopTimerTick();
+  clearAllTimerIntervals();
+  if (_timerChannel) { try { _timerChannel.close(); } catch (_) {} }
+});
+
+// Vang onafgehandelde async fouten op zodat de gebruiker feedback krijgt
+window.addEventListener('unhandledrejection', (e) => {
+  logError('unhandledrejection', e.reason);
+  showToast('Er ging iets mis. Probeer het opnieuw.');
 });
 
 // ===================================================
