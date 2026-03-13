@@ -7859,17 +7859,17 @@ document.addEventListener('click', function handleDelegatedClick(e) {
     // Taken
     case 'open-edit-taak':       openEditTaak(id); break;
     case 'toggle-taak':          toggleTaak(id); break;
-    case 'toggle-meerwerk-taken': toggleMeerwerk('taken'); break;
+    case 'toggle-meerwerk-taken': toggleMeerwerk('taken', id); break;
     case 'delete-taak':          deleteItem('taken', id); break;
     case 'save-edit-taak':       saveEditTaak(id); break;
     // Materialen
     case 'open-edit-materiaal':  openEditMateriaal(id); break;
-    case 'toggle-meerwerk-materialen': toggleMeerwerk('materialen'); break;
+    case 'toggle-meerwerk-materialen': toggleMeerwerk('materialen', id); break;
     case 'delete-materiaal':     deleteItem('materialen', id); break;
     case 'save-edit-materiaal':  saveEditMateriaal(id); break;
     // Uren
     case 'open-edit-uren':       openEditUren(id); break;
-    case 'toggle-meerwerk-uren': toggleMeerwerk('uren'); break;
+    case 'toggle-meerwerk-uren': toggleMeerwerk('uren', id); break;
     case 'delete-uren':          deleteItem('uren', id); break;
     case 'save-edit-uren':       saveEditUren(id); break;
     // Ritten
