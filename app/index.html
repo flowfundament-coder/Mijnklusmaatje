@@ -5250,11 +5250,14 @@ async function startRecording() {
   }
 
   const mimeType = getSupportedMimeType();
+  _recorderMimeType = mimeType; // Bewaar expliciet voor later gebruik (iOS geeft soms lege mimeType terug)
   try {
     mediaRecorder = mimeType ? new MediaRecorder(audioStream, { mimeType }) : new MediaRecorder(audioStream);
   } catch (e) {
     logError('startRecording:MediaRecorder mimeType fallback', e);
     mediaRecorder = new MediaRecorder(audioStream);
+    // Op iOS zonder expliciet mimeType is het altijd mp4
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) _recorderMimeType = 'audio/mp4';
   }
 
   audioChunks = [];
@@ -5292,10 +5295,13 @@ function getSupportedMimeType() {
   return types.find(t => MediaRecorder.isTypeSupported(t)) || null;
 }
 
+// Bewaar het gekozen mimeType apart zodat we het op iOS altijd betrouwbaar kunnen opvragen
+let _recorderMimeType = null;
+
 function getMimeExtension(mimeType) {
   if (!mimeType) return 'webm';
   if (mimeType.includes('ogg')) return 'ogg';
-  if (mimeType.includes('mp4')) return 'mp4';
+  if (mimeType.includes('mp4') || mimeType.includes('m4a') || mimeType.includes('aac')) return 'mp4';
   return 'webm';
 }
 
@@ -5306,7 +5312,11 @@ async function processRecording() {
     return;
   }
 
-  const mimeType = mediaRecorder?.mimeType || 'audio/webm';
+  // Gebruik _recorderMimeType als primaire bron (betrouwbaar op iOS)
+  // Fallback: mediaRecorder.mimeType, dan device-specifieke default
+  const mimeType = _recorderMimeType
+    || (mediaRecorder?.mimeType ? mediaRecorder.mimeType : null)
+    || (/iPad|iPhone|iPod/.test(navigator.userAgent) ? 'audio/mp4' : 'audio/webm');
   const ext = getMimeExtension(mimeType);
   const audioBlob = new Blob(audioChunks, { type: mimeType });
 
@@ -5325,10 +5335,20 @@ async function processRecording() {
     return;
   }
 
+  // Volume check met timeout — op iOS kan decodeAudioData hangen bij mp4 blobs
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    // Resume nodig op iOS (autoplay policy)
+    if (audioContext.state === 'suspended') await audioContext.resume();
     const arrayBuffer = await audioBlob.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+    // Timeout van 3 seconden — als decodeAudioData hangt (iOS), sla volume check over
+    const decodeWithTimeout = Promise.race([
+      audioContext.decodeAudioData(arrayBuffer.slice(0)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('decode timeout')), 3000))
+    ]);
+
+    const audioBuffer = await decodeWithTimeout;
     const channelData = audioBuffer.getChannelData(0);
     let sumSquares = 0;
     for (let i = 0; i < channelData.length; i++) {
@@ -5343,7 +5363,7 @@ async function processRecording() {
       return;
     }
   } catch (audioErr) {
-    // Audio analyse overgeslagen
+    // Volume analyse overgeslagen (timeout of decode fout — normaal op iOS)
   }
 
   await transcribeAudio(audioBlob, ext);
