@@ -5691,9 +5691,9 @@ async function interpretWithClaude(transcript) {
   }
 }
 
-function findProject(idOrNaam) {
+async function findProject(idOrNaam) {
   if (!idOrNaam) return null;
-  const projects = _projectsListCache || [];
+  const projects = _projectsListCache || await loadProjects();
   let p = projects.find(p => p.id === idOrNaam);
   if (p) return p;
   const q = String(idOrNaam).toLowerCase();
@@ -5731,7 +5731,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'voeg_taak_toe': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const itemType = parameters.type === 'notitie' ? 'notitie' : 'taak';
         const row = await addTaakDB(p.id, { omschrijving: parameters.omschrijving || '', deadline: parameters.deadline || null, type: itemType, tijd: parameters.tijd || null, meerwerk: parameters.meerwerk || false });
@@ -5745,7 +5745,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'voeg_materiaal_toe': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const items = parameters?.items || [{ naam: parameters?.naam, hoeveelheid: parameters?.hoeveelheid, eenheid: parameters?.eenheid, prijs: parameters?.prijs }];
         for (const m of items) {
@@ -5761,7 +5761,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'registreer_uren': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const uren = parseFloat(parameters?.uren);
         if (!uren || uren <= 0) { showToast('Ongeldig aantal uren'); return; }
@@ -5775,7 +5775,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'registreer_rit': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const km = parseFloat(parameters?.km);
         if (!km || km <= 0) { showToast('Ongeldig aantal km'); return; }
@@ -5790,7 +5790,7 @@ async function executeAction(actie, parameters) {
 
       case 'voeg_notitie_toe': {
         // Legacy: doorsturen naar taken tabel met type='notitie'
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         const tekst = parameters.tekst || parameters.omschrijving || '';
         const row = await addTaakDB(p.id, { omschrijving: tekst, deadline: parameters.datum || null, type: 'notitie', tijd: parameters.tijd || null });
@@ -5804,7 +5804,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'update_klant': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         if (parameters?.veld && parameters?.waarde !== undefined) {
           const colMap = { naam:'klant_naam', adres:'klant_adres', postcode:'klant_postcode', plaats:'klant_plaats', telefoon:'klant_telefoon', email:'klant_email' };
@@ -5823,7 +5823,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'genereer_offerte': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         await showScreen('project-detail', p.id);
         setTimeout(() => generateOfferte(), 500);
@@ -5831,7 +5831,7 @@ async function executeAction(actie, parameters) {
       }
 
       case 'genereer_factuur': {
-        const p = findProject(parameters?.project_id);
+        const p = await findProject(parameters?.project_id);
         if (!p) { showToast('Project niet gevonden'); return; }
         await showScreen('project-detail', p.id);
         setTimeout(() => generateFactuur(), 500);
@@ -5847,7 +5847,7 @@ async function executeAction(actie, parameters) {
 
       case 'toon_uren': {
         if (parameters?.project_id) {
-          const p = findProject(parameters.project_id);
+          const p = await findProject(parameters.project_id);
           if (p) { await showScreen('project-detail', p.id); setTimeout(() => switchTab('uren'), 100); }
         }
         break;
